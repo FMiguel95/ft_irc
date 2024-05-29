@@ -5,7 +5,11 @@
 class Client
 {
 public:
-	Client(int clientSocket);
+	Client();
+	Client(const Client& src);
+	~Client();
+	Client& operator =(const Client& src);
+
 private:
 	std::string _nick;
 	std::string _user;
@@ -15,5 +19,4 @@ private:
 	
 	std::string _messageBuffer;
 
-	Client();
 };

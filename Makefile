@@ -1,6 +1,9 @@
 NAME = ircserv
 
-SRC_LIST =  main.cpp
+SRC_LIST = main.cpp \
+			Server.cpp \
+			Channel.cpp \
+			Client.cpp 
 
 SRC_DIR = src/
 SRC = $(addprefix $(SRC_DIR), $(SRC_LIST))

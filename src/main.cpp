@@ -23,6 +23,9 @@ void	handle_sigint(int signal)
 	}
 }
 
+// modern.ircdocs.horse
+// datatracker.ietf.org/doc/html/rfc2812
+// ircv3.net
 
 int main()
 {
@@ -134,7 +137,7 @@ int main()
 
 					std::string reply;
 					if (clientMessage == "CAP LS 302\r\n")
-						reply = ":localhost CAP * LS :\r\n";
+						reply = ":verycoolserver CAP * LS :\r\n";
 					else
 						reply = "Hi!\r\n";
 					send(fds[i].fd, reply.c_str(), reply.length(), 0);
@@ -147,7 +150,7 @@ int main()
 	// Close server socket
 	if (close(serverSocket) < 0)
 	{
-		std::cerr << "Close error\n";
+		std::cerr << "Close error" << std::endl;
 	}
 	std::cout << "quitting" << std::endl;
 	return 0;
