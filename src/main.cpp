@@ -27,7 +27,7 @@ void	handle_sigint(int signal)
 // datatracker.ietf.org/doc/html/rfc2812
 // ircv3.net
 
-int main()
+int main(int ac, char** av)
 {
 	int serverSocket, clientSocket;
 	struct sockaddr_in serverAddr, clientAddr;
