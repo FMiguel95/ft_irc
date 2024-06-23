@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <ctime>
 
 class Client
 {
@@ -10,6 +11,11 @@ public:
 	~Client();
 	Client& operator =(const Client& src);
 
+	// returns the difference in seconds
+	double& getTimeSinceLastActivity() const;
+
+	void updateActivityTime();
+
 private:
 	std::string _nick;
 	std::string _user;
@@ -18,5 +24,7 @@ private:
 	std::string _realname;
 	
 	std::string _messageBuffer;
+
+	std::time_t lastActivityTime;
 
 };

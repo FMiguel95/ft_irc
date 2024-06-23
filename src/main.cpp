@@ -8,7 +8,6 @@
 #include <poll.h>
 #include <csignal>
 
-
 const int MAX_CLIENTS = 10;
 const int BUFFER_SIZE = 1024;
 const int PORT = 6667;
@@ -26,6 +25,7 @@ void	handle_sigint(int signal)
 // modern.ircdocs.horse
 // datatracker.ietf.org/doc/html/rfc2812
 // ircv3.net
+
 
 int main(int ac, char** av)
 {

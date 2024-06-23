@@ -12,7 +12,7 @@ BIN_DIR = bin/
 BIN = $(addprefix $(BIN_DIR), $(SRC_LIST:.cpp=.o))
 
 CXX = c++
-CXXFLAGS = #-Wall -Werror -Wextra -std=c++98 -g 
+CXXFLAGS = -g #-std=c++98 -Wall -Werror -Wextra 
 RM = rm -rf
 
 all: $(NAME)
