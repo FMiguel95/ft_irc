@@ -9,7 +9,7 @@
 #include <csignal>
 
 
-const int MAX_CLIENTS = 10;
+const int MAX_CLIENTS = 2;
 const int BUFFER_SIZE = 1024;
 const int PORT = 6667;
 bool run = true;
@@ -29,10 +29,10 @@ void	handle_sigint(int signal)
 
 int main(int ac, char** av)
 {
-	int serverSocket, clientSocket;
-	struct sockaddr_in serverAddr, clientAddr;
-	socklen_t addrLen = sizeof(struct sockaddr_in);
-	char buffer[BUFFER_SIZE];
+	int					serverSocket, clientSocket;
+	struct sockaddr_in	serverAddr, clientAddr;
+	socklen_t			addrLen = sizeof(struct sockaddr_in);
+	char				buffer[BUFFER_SIZE];
 
 	// Create socket
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -96,6 +96,27 @@ int main(int ac, char** av)
 		// If there's a new connection request
 		if (fds[0].revents & POLLIN)
 		{
+			if (numClients == MAX_CLIENTS)
+			{
+				std::cerr << "Max clients reached\n";
+				//std::string msg = inet_ntoa(clientAddr.sin_addr) + ":" + std::to_string(ntohs(clientAddr.sin_port));
+				//std::cerr << "Max clients reached - port: " << msg << std::endl;
+				break;
+
+				/*std::string id = ip + port;
+				if (list == empty)
+					continue;
+				else
+				{
+					while (list)
+					{
+						if (list->id == id)
+							print_error;
+							break;
+						list = list->next;
+					}
+				}*/
+			}
 			// Accept the connection
 			clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
 			if (clientSocket < 0)
@@ -105,6 +126,7 @@ int main(int ac, char** av)
 			}
 
 			// Add the new client to the array of sockets
+			// CLIENT CONSTRUCTOR
 			numClients++;
 			fds[numClients].fd = clientSocket;
 			fds[numClients].events = POLLIN;
