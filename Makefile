@@ -1,6 +1,6 @@
 NAME = ircserv
 
-SRC_LIST = main.cpp \
+SRC_LIST = main1.cpp \
 			Server.cpp \
 			Channel.cpp \
 			Client.cpp 
@@ -12,7 +12,7 @@ BIN_DIR = bin/
 BIN = $(addprefix $(BIN_DIR), $(SRC_LIST:.cpp=.o))
 
 CXX = c++
-CXXFLAGS = -g #-std=c++98 -Wall -Werror -Wextra 
+CXXFLAGS = -g -std=c++98 -Wall -Werror -Wextra 
 RM = rm -rf
 
 all: $(NAME)

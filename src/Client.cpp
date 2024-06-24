@@ -2,9 +2,15 @@
 
 Client::Client() {}
 
-Client::Client(const Client& src) {}
+Client::Client(const Client& src)
+{
+		(void) src;
+}
 
-Client::~Client() {}
+Client::~Client()
+{
+
+}
 
 Client& Client::operator =(const Client& src)
 {
@@ -15,7 +21,7 @@ Client& Client::operator =(const Client& src)
 	return *this;
 }
 
-double& Client::getTimeSinceLastActivity() const
+double Client::getTimeSinceLastActivity() const
 {
 	std::time_t currentTime = std::time(NULL);
 	double difference = std::difftime(lastActivityTime, currentTime);

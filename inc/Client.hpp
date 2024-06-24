@@ -6,13 +6,15 @@
 class Client
 {
 public:
+	std::string _messageBuffer;
+
 	Client();
 	Client(const Client& src);
 	~Client();
 	Client& operator =(const Client& src);
 
 	// returns the difference in seconds
-	double& getTimeSinceLastActivity() const;
+	double getTimeSinceLastActivity() const;
 
 	void updateActivityTime();
 
@@ -23,7 +25,6 @@ private:
 	//std::string _servername;
 	std::string _realname;
 	
-	std::string _messageBuffer;
 
 	std::time_t lastActivityTime;
 

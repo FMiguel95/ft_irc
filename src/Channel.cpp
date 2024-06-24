@@ -2,7 +2,10 @@
 
 Channel::Channel() {}
 
-Channel::Channel(const Channel& src) {}
+Channel::Channel(const Channel& src)
+{
+	(void) src;
+}
 
 Channel::~Channel() {}
 

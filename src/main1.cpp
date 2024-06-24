@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 #include <poll.h>
 
+#include "../inc/Server.hpp"
+
 #define PORT		6667
 #define BUFFER_SIZE	1024
 
@@ -31,6 +33,10 @@ void handle_sigint(int signal)
 
 int main(void)
 {
+	Server server;
+	server.run();
+	return 0;
+	/////////////////////////////////////////
 	int				serverSocket, clientSocket, opt;
 	sockaddr_in		serverAddress, clientAddress;
 	socklen_t		clientAddressSize = sizeof(clientAddress);
@@ -64,9 +70,13 @@ int main(void)
 	// CLIENT CONNECTION -------------------------------------------------------
 	
 	std::vector<pollfd>	fds;
-	std::vector<int>	clients;
+	std::vector<int>	clientSockets;
 	
-	fds.push_back({serverSocket, POLLIN, 0});
+	pollfd pfd;
+	pfd.fd = serverSocket;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+	fds.push_back(pfd);
 	std::signal(SIGINT, handle_sigint);
 	while (run)
 	{
@@ -77,53 +87,57 @@ int main(void)
 				error_exit("Error polling sockets");
 			break;
 		}
-		for (int i = 0; i < fds.size(); i++)
+		if (fds[0].revents & POLLIN)
+		{
+			clientSocket = accept(serverSocket, (sockaddr*)&clientAddress, &clientAddressSize);
+			//std::cout << clientSocket << std::endl;
+			if (clientSocket == -1)
+			{
+				error_exit("Error accepting connection");
+				continue;
+			}
+			else
+			{
+				pfd.fd = clientSocket;
+				pfd.events = POLLIN | POLLHUP | POLLERR;
+				pfd.revents = 0;
+				fds.push_back(pfd);
+				clientSockets.push_back(clientSocket);
+				std::cout << "New client connected: " << inet_ntoa(clientAddress.sin_addr) << ':' << ntohs(clientAddress.sin_port) << '\n';
+			}
+		}
+		for (size_t i = 1; i < fds.size(); i++)
 		{
 			if (fds[i].revents & POLLIN)
 			{
-				if (fds[i].fd == serverSocket)
+				clientSocket = fds[i].fd;
+				int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+				if (bytesRead <= 0)
 				{
-					clientSocket = accept(serverSocket, (sockaddr*)&clientAddress, &clientAddressSize);
-					if (clientSocket == -1)
-					{
-						error_exit("Error accepting connection");
-						continue;
-					}
+					if (bytesRead == 0)
+						std::cout << "Client disconnected\n";
 					else
 					{
-						fds.push_back({clientSocket, POLLIN | POLLHUP | POLLERR, 0});
-						clients.push_back(clientSocket);
-						std::cout << "New client connected: " << inet_ntoa(clientAddress.sin_addr) << ':' << ntohs(clientAddress.sin_port) << '\n';
+						std::cout << bytesRead << std::endl;
+						error_exit("Error receiving data from client");
 					}
+					close(clientSocket);
+					fds.erase(fds.begin() + i);
+					clientSockets.erase(std::remove(clientSockets.begin(), clientSockets.end(), clientSocket), clientSockets.end());
+					i--;
 				}
 				else
 				{
-					clientSocket = fds[i].fd;
-					int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-					if (bytesRead <= 0)
-					{
-						if (bytesRead == 0)
-							std::cout << "Client disconnected\n";
-						else
-							error_exit("Error receiving data");
-						close(clientSocket);
-						fds.erase(fds.begin() + i);
-						clients.erase(std::remove(clients.begin(), clients.end(), clientSocket), clients.end());
-						i--;
-					}
-					else
-					{
-						std::string clientMessage = std::string(buffer, 0, bytesRead);
-						std::cout << "Received from client: " << clientMessage << "\n";
+					std::string clientMessage = std::string(buffer, 0, bytesRead);
+					std::cout << "Received from client: " << clientMessage << "\n";
 
-						std::string reply;
-						if (clientMessage == "CAP LS 302\r\n")
-							reply = ":verycoolserver CAP * LS :\r\n";
-						else
-							reply = "hi!\r\n";
-						send(fds[i].fd, reply.c_str(), reply.length(), 0);
-						std::cout << "Replied with > " << reply << "\n";
-					}
+					std::string reply;
+					if (clientMessage == "CAP LS 302\r\n")
+						reply = ":verycoolserver CAP * LS :\r\n";
+					else
+						reply = "hi!\r\n";
+					send(fds[i].fd, reply.c_str(), reply.length(), 0);
+					std::cout << "Replied with > " << reply << "\n";
 				}
 			}
 		}
