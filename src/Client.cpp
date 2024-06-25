@@ -1,11 +1,8 @@
 #include "../inc/Client.hpp"
 
-Client::Client() {}
+Client::Client() : isRegistered(false) {}
 
-Client::Client(const Client& src)
-{
-		(void) src;
-}
+Client::Client(const Client& src) : isRegistered(src.isRegistered) {}
 
 Client::~Client()
 {
@@ -16,7 +13,7 @@ Client& Client::operator =(const Client& src)
 {
 	if (this != &src)
 	{
-		
+		isRegistered = src.isRegistered;
 	}
 	return *this;
 }

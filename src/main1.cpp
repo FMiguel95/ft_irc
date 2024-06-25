@@ -16,12 +16,6 @@
 
 bool run = true;
 
-int error_exit(const char *message)
-{
-	std::cerr << message << '\n';
-	return 1;
-}
-
 void handle_sigint(int signal)
 {
 	if (signal == SIGINT)
@@ -31,12 +25,20 @@ void handle_sigint(int signal)
 	}
 }
 
+static int error_exit(const char *message)
+{
+	std::cerr << message << '\n';
+	return 1;
+}
+
 int main(void)
 {
 	Server server;
 	server.run();
-	return 0;
+	return (0);
+
 	/////////////////////////////////////////
+	/*
 	int				serverSocket, clientSocket, opt;
 	sockaddr_in		serverAddress, clientAddress;
 	socklen_t		clientAddressSize = sizeof(clientAddress);
@@ -148,4 +150,5 @@ int main(void)
 	if (close(serverSocket) == -1)
 		return (error_exit("Error closing server socket"));
 	std::cout << "Server socket closed\n";
+	*/
 }

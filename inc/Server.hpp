@@ -42,6 +42,7 @@ private:
 	std::string password;
 	std::map<int,Client> clients;	// socket/client pair
 	std::list<Channel> channels;	// list of channels
+	t_message message;
 
 	// recebe uma mensagem de um client e adiciona ao buffer - adicionar à lista de clients se ainda não existir?
 	// se detetar \r\n, construir um struct t_message e remover do buffer ao estilo gnl (sorry anna)

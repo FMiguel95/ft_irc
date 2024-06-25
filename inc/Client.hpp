@@ -7,6 +7,7 @@ class Client
 {
 public:
 	std::string _messageBuffer;
+	bool isRegistered;
 
 	Client();
 	Client(const Client& src);
@@ -15,7 +16,6 @@ public:
 
 	// returns the difference in seconds
 	double getTimeSinceLastActivity() const;
-
 	void updateActivityTime();
 
 private:
