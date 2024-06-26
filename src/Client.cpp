@@ -39,3 +39,19 @@ void Client::updateActivityTime()
 {
 	_lastActivityTime = std::time(NULL);
 }
+
+std::string Client::getUserInfo(char choice) const
+{
+	std::string info;
+	if (choice == 'n')
+		info = _nick;
+	else if (choice == 'u')
+		info = _user;
+	else if (choice == 'h')
+		info = _hostname;
+	else if (choice == 'r')
+		info = _realname;
+	else
+		info = "Invalid choice";
+	return (info);
+}

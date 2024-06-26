@@ -22,6 +22,8 @@ public:
 	double getTimeSinceLastActivity() const;
 	void updateActivityTime();
 
+	std::string getUserInfo(char choice) const;
+
 private:
 	std::string _nick;
 	std::string _user;
