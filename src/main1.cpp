@@ -34,8 +34,7 @@ static int error_exit(const char *message)
 int main(void)
 {
 	Server server;
-	server.run();
-	return (0);
+	return server.run();
 
 	/////////////////////////////////////////
 	/*

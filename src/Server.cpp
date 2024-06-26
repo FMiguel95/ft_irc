@@ -70,7 +70,7 @@ int Server::run()
 
 	while (1)
 	{
-		int pollResult = poll(fds.data(), fds.size(), -1);
+		int pollResult = poll(fds.data(), fds.size(), 100);
 		if (pollResult == -1)
 		{
 			error_exit("Error polling sockets");
@@ -141,7 +141,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
-	//aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+	// version coppied from above harcodeded to be used with nc
 	while (client._messageBuffer.find("\n") != std::string::npos)
 	{
 		std::string message = client._messageBuffer.substr(0, client._messageBuffer.find("\n"));
@@ -151,9 +151,6 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 			handleMessage(socket, &this->message);
 	}
 	std::cout << "buffer:" << client._messageBuffer << std::endl;
-	// TODO
-	// check for \r\n
-	// then remove from buffer and call parseMessage(std::string& stream);
 
 }
 
@@ -170,7 +167,11 @@ t_message* Server::parseMessage(std::string& stream)
 	}
 	split.push_back(stream.substr(start));
 
-	// create struct
+	// initialize struct
+	message.prefix.clear();
+	message.command.clear();
+	for (size_t i = 0; i < 15; i++)
+		message.arguments[i].clear();
 	int j = 0;
 	for (std::vector<std::string>::iterator i = split.begin(); i != split.end(); ++i)
 	{
@@ -180,20 +181,108 @@ t_message* Server::parseMessage(std::string& stream)
 			message.command = *i;
 			continue;
 		}
-		message.arguments[j] = *i;
-		j++;
+		message.arguments[j++] = *i;
 	}
 	std::cout << "struct prefix:" << message.prefix << std::endl;
 	std::cout << "struct command:" << message.command << std::endl;
 	for (size_t i = 0; i < 15; i++)
-	{
 		std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
-	}
 
 	return &message;
 }
 
 void Server::handleMessage(const int& socket, t_message* message)
 {
+	if (message->command == "PASS")
+		cmdPASS(socket, message);
+	else if (message->command == "NICK")
+		cmdNICK(socket, message);
+	else if (message->command == "USER")
+		cmdUSER(socket, message);
+}
 
+// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
+// Command: PASS
+// Parameters: <password>
+void Server::cmdPASS(const int& socket, const t_message* message)
+{
+	Client& client = clients.at(socket);
+	
+	// se ja estiver registado
+	if (client.isRegistered)
+	{
+		// reply ERR_ALREADYREGISTRED
+		return; 
+	}
+	// se o servidor nao precisar de password OK
+	if (password.empty())
+	{
+		client.passOk = true;
+		return;
+	}
+	// se faltar argumento
+	if (message->arguments[0].empty())
+	{
+		// reply ERR_NEEDMOREPARAMS
+		return; 
+	}
+	// se a pass esta mal
+	if (password != message->arguments[0])
+	{
+		// reply ERR_PASSWDMISMATCH
+		return; 
+	}
+	// se a pass der match
+	if (password == message->arguments[0])
+	{
+		client.passOk = true;
+		return; 
+	}
+}
+
+// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.2
+// Command: NICK
+// Parameters: <nickname>
+void Server::cmdNICK(const int& socket, const t_message* message)
+{
+	Client& client = clients.at(socket);
+
+	// este comando tem dois usos
+	// - escolher o nick na altura do registo
+	// - mudar o nick depois de ja estar registado
+	// se for o segundo caso, notificar outros utilizadores da mudança?
+
+
+	// se nao estiver registado
+	// 
+	// validar que ja enviou a pass correta
+	// validar que o comando tem argumento -> ERR_NONICKNAMEGIVEN
+	// validar caracteres do nick -> ERR_ERRONEUSNICKNAME
+	// validar que o nick nao esta a ser utilizado por outro user -> ERR_NICKNAMEINUSE
+
+	// se ja estiver registado
+	// 
+	// validar que o comando tem argumento -> ERR_NONICKNAMEGIVEN
+	// validar caracteres do nick -> ERR_ERRONEUSNICKNAME
+	// validar que o nick nao esta a ser utilizado por outro user -> ERR_NICKNAMEINUSE
+	// OK
+	// ...notificar outros utilizadores da mudança?
+}
+
+// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.3
+// Command: USER
+// Parameters: <user> <mode> <unused> <realname>
+void Server::cmdUSER(const int& socket, const t_message* message)
+{
+	Client& client = clients.at(socket);
+
+	// validar que ja enviou a pass correta
+	// validar que ainda nao fez registo -> ERR_ALREADYREGISTRED
+	// validar que tem os argumentos todos -> ERR_NEEDMOREPARAMS
+
+
+
+
+
+	// se a pass nick e user do client estiverem OK permitir login no servidor
 }

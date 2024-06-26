@@ -23,8 +23,6 @@ typedef struct {
 	std::string command;
 	std::string arguments[15];
 } t_message;
-// edit: se calhar é melhor usar uma classe em vez de struct porque não podemos usar malloc
-
 
 class Server
 {
@@ -68,4 +66,20 @@ private:
 
 	// iterates through the list of clients and pings or disconnects ones that have been inactive too long
 	void checkTimeouts();
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
+	// Command: PASS
+	// Parameters: <password>
+	void cmdPASS(const int& socket, const t_message* message);
+	
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.2
+	// Command: NICK
+	// Parameters: <nickname>
+	void cmdNICK(const int& socket, const t_message* message);
+	
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.3
+	// Command: USER
+	// Parameters: <user> <mode> <unused> <realname>
+	void cmdUSER(const int& socket, const t_message* message);
+
 };

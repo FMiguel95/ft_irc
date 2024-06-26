@@ -7,7 +7,11 @@ class Client
 {
 public:
 	std::string _messageBuffer;
+
 	bool isRegistered;
+	bool passOk;
+	bool nickOk;
+	bool userOk;
 
 	Client();
 	Client(const Client& src);
@@ -22,10 +26,10 @@ private:
 	std::string _nick;
 	std::string _user;
 	std::string _hostname;
-	//std::string _servername;
 	std::string _realname;
+	// std::string _servername;
 	
 
-	std::time_t lastActivityTime;
+	std::time_t _lastActivityTime;
 
 };

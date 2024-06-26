@@ -1,13 +1,23 @@
 #include "../inc/Client.hpp"
 
-Client::Client() : isRegistered(false) {}
+Client::Client() :
+isRegistered(false),
+passOk(false),
+nickOk(false),
+userOk(false)
+{}
 
-Client::Client(const Client& src) : isRegistered(src.isRegistered) {}
+Client::Client(const Client& src) :
+isRegistered(src.isRegistered),
+passOk(src.passOk),
+nickOk(src.nickOk),
+userOk(src.userOk),
+_nick(src._nick),
+_user(src._user),
+_lastActivityTime(src._lastActivityTime)
+{}
 
-Client::~Client()
-{
-
-}
+Client::~Client() {}
 
 Client& Client::operator =(const Client& src)
 {
@@ -21,11 +31,11 @@ Client& Client::operator =(const Client& src)
 double Client::getTimeSinceLastActivity() const
 {
 	std::time_t currentTime = std::time(NULL);
-	double difference = std::difftime(lastActivityTime, currentTime);
+	double difference = std::difftime(_lastActivityTime, currentTime);
 	return difference;
 }
 
 void Client::updateActivityTime()
 {
-	lastActivityTime = std::time(NULL);
+	_lastActivityTime = std::time(NULL);
 }
