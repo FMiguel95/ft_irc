@@ -158,9 +158,9 @@ t_message* Server::parseMessage(std::string& stream)
 {
 	// split the message with " " as delimiter
 	std::vector<std::string> split;
-	std::string token;
-	size_t start = 0, end;
-	while ((end = stream.find(" ", start)) != std::string::npos)
+	size_t start = 0;
+	size_t end;
+	while ((end = stream.find(" ", start)) != std::string::npos && split.size() < 15 && stream[start] != ':')
 	{
 		split.push_back(stream.substr(start, end - start));
 		start = end + 1;
