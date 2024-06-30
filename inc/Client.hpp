@@ -6,7 +6,11 @@
 class Client
 {
 public:
-	std::string _messageBuffer;
+	std::string messageBuffer;
+	std::string nick;
+	std::string user;
+	std::string hostname;
+	std::string realname;
 
 	bool isRegistered;
 	bool passOk;
@@ -25,10 +29,6 @@ public:
 	std::string getUserInfo(char choice) const;
 
 private:
-	std::string _nick;
-	std::string _user;
-	std::string _hostname;
-	std::string _realname;
 	// std::string _servername;
 	
 

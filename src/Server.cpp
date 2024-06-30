@@ -128,29 +128,35 @@ int Server::run()
 	return (0);
 }
 
+void Server::sendMessage(const int& socket, const std::string& message)
+{
+	std::cout << "sending message to socket " << socket << ":" << message << std::endl;
+	send(socket, message.c_str(), message.size(), 0);
+}
+
 void Server::receiveMessage(const int& socket, std::string& stream)
 {
 	Client& client = clients.at(socket);
 	client.updateActivityTime();
-	client._messageBuffer += stream;
-	while (client._messageBuffer.find("\r\n") != std::string::npos)
+	client.messageBuffer += stream;
+	while (client.messageBuffer.find("\r\n") != std::string::npos)
 	{
-		std::string message = client._messageBuffer.substr(0, client._messageBuffer.find("\r\n"));
-		client._messageBuffer.erase(0, client._messageBuffer.find("\r\n") + 2);
+		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\r\n"));
+		client.messageBuffer.erase(0, client.messageBuffer.find("\r\n") + 2);
 		std::cout << "Received from Client: " << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
 	// version coppied from above harcodeded to be used with nc
-	while (client._messageBuffer.find("\n") != std::string::npos)
+	while (client.messageBuffer.find("\n") != std::string::npos)
 	{
-		std::string message = client._messageBuffer.substr(0, client._messageBuffer.find("\n"));
-		client._messageBuffer.erase(0, client._messageBuffer.find("\n") + 1);
+		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\n"));
+		client.messageBuffer.erase(0, client.messageBuffer.find("\n") + 1);
 		std::cout << "Received from Client: " << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
-	//std::cout << "buffer:" << client._messageBuffer << std::endl;
+	//std::cout << "buffer:" << client.messageBuffer << std::endl;
 
 }
 
@@ -165,6 +171,8 @@ t_message* Server::parseMessage(std::string& stream)
 		split.push_back(stream.substr(start, end - start));
 		start = end + 1;
 	}
+	if (stream[start] == ':')	// remove extra ':'
+		start++;
 	split.push_back(stream.substr(start));
 
 	// initialize struct
@@ -172,22 +180,31 @@ t_message* Server::parseMessage(std::string& stream)
 	message.command.clear();
 	for (size_t i = 0; i < 15; i++)
 		message.arguments[i].clear();
-	int j = 0;
+	int argIndex = 0;
 	for (std::vector<std::string>::iterator i = split.begin(); i != split.end(); ++i)
 	{
 		// std::cout << *i << std::endl;
-		if (i == split.begin())
+		// set prefix if first word starts with :
+		if (i == split.begin() && (*i)[0] == ':')
+		{
+			message.prefix = *i;
+			continue;
+		}
+		// set command if first word doesnt start with : or if second word and prefix was already set
+		if ((i == split.begin() && (*i)[0] != ':') || (i - 1 == split.begin() && !message.prefix.empty()))
 		{
 			message.command = *i;
 			continue;
 		}
-		message.arguments[j++] = *i;
+		message.arguments[argIndex++] = *i;
 	}
-	std::cout << "struct prefix:" << message.prefix << std::endl;
-	std::cout << "struct command:" << message.command << std::endl;
-	for (size_t i = 0; i < 15; i++)
-		std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
+	// std::cout << "struct prefix:" << message.prefix << std::endl;
+	// std::cout << "struct command:" << message.command << std::endl;
+	// for (size_t i = 0; i < 15; i++)
+	// 	std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
 
+	if (message.command.empty())
+		return NULL;
 	return &message;
 }
 
@@ -295,7 +312,8 @@ void Server::cmdNICK(const int& socket, const t_message* message)
 		// reply ERR_NICKNAMEINUSE
 		return;
 	}
-
+	client.nick = message->arguments[0];
+	client.nickOk = true;
 	// add nick to the client
 
 	// este comando tem dois usos
@@ -342,12 +360,21 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		// reply ERR_NEEDMOREPARAMS
 		return;
 	}
-
+	client.user = message->arguments[0];
+	client.userOk = true;
 	// add user to the client and log the client in
 
 	// validar que ja enviou a pass correta -> DONE
 	// validar que ainda nao fez registo -> ERR_ALREADYREGISTRED -> DONE
 	// validar que tem os argumentos todos -> ERR_NEEDMOREPARAMS -> DONE
 
-	// se a pass nick e user do client estiverem OK permitir login no servidor -- TO DO
+	// se a pass nick e user do client estiverem OK permitir login no servidor
+	if ((password.empty() || client.passOk) && client.nickOk && client.userOk)
+	{
+		client.isRegistered = true;
+		sendMessage(socket, std::string(":localhost") + " 001 " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + " :)\r\n");
+		sendMessage(socket, std::string(":localhost") + " 002 " + client.nick + " :Your host is localhost, running version 0.1\r\n");
+		sendMessage(socket, std::string(":localhost") + " 003 " + client.nick + " :This sever was created yesterday\r\n");
+		sendMessage(socket, std::string(":localhost") + " 004 " + client.nick + " localhost 0.1 iowghraAs biklmnopstve\r\n"); // ?
+	}
 }

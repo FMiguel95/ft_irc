@@ -12,8 +12,8 @@ isRegistered(src.isRegistered),
 passOk(src.passOk),
 nickOk(src.nickOk),
 userOk(src.userOk),
-_nick(src._nick),
-_user(src._user),
+nick(src.nick),
+user(src.user),
 _lastActivityTime(src._lastActivityTime)
 {}
 
@@ -44,13 +44,13 @@ std::string Client::getUserInfo(char choice) const
 {
 	std::string info;
 	if (choice == 'n')
-		info = _nick;
+		info = nick;
 	else if (choice == 'u')
-		info = _user;
+		info = user;
 	else if (choice == 'h')
-		info = _hostname;
+		info = hostname;
 	else if (choice == 'r')
-		info = _realname;
+		info = realname;
 	else
 		info = "Invalid choice";
 	return (info);
