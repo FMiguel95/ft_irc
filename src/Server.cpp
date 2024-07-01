@@ -130,7 +130,7 @@ int Server::run()
 
 void Server::sendMessage(const int& socket, const std::string& message)
 {
-	std::cout << "sending message to socket " << socket << ":" << message << std::endl;
+	std::cout << "Sending to socket " << socket << ":" << message;
 	send(socket, message.c_str(), message.size(), 0);
 }
 
@@ -143,7 +143,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	{
 		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\r\n"));
 		client.messageBuffer.erase(0, client.messageBuffer.find("\r\n") + 2);
-		std::cout << "Received from Client: " << message << std::endl;
+		std::cout << "Received from socket " << socket << ":" << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
@@ -152,7 +152,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	{
 		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\n"));
 		client.messageBuffer.erase(0, client.messageBuffer.find("\n") + 1);
-		std::cout << "Received from Client: " << message << std::endl;
+		std::cout << "Received from socket " << socket << ":" << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
@@ -372,9 +372,9 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 	if ((password.empty() || client.passOk) && client.nickOk && client.userOk)
 	{
 		client.isRegistered = true;
-		sendMessage(socket, std::string(":localhost") + " 001 " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + " :)\r\n");
-		sendMessage(socket, std::string(":localhost") + " 002 " + client.nick + " :Your host is localhost, running version 0.1\r\n");
+		sendMessage(socket, std::string(":localhost") + " 001 " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
+		sendMessage(socket, std::string(":localhost") + " 002 " + client.nick + " :Your host is localhost, running version v0.1\r\n");
 		sendMessage(socket, std::string(":localhost") + " 003 " + client.nick + " :This sever was created yesterday\r\n");
-		sendMessage(socket, std::string(":localhost") + " 004 " + client.nick + " localhost 0.1 iowghraAs biklmnopstve\r\n"); // ?
+		sendMessage(socket, std::string(":localhost") + " 004 " + client.nick + " localhost v0.1 iowghraAs biklmnopstve\r\n"); // ?
 	}
 }

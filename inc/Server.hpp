@@ -84,4 +84,28 @@ private:
 	// Parameters: <user> <mode> <unused> <realname>
 	void cmdUSER(const int& socket, const t_message* message);
 
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.1
+	// Command: JOIN
+	// Parameters: ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
+	void cmdJOIN(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.3
+	// Command: MODE
+	// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
+	void cmdMODE(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.4
+	// Command: TOPIC
+	// Parameters: <channel> [ <topic> ]
+	void cmdTOPIC(const int& socket, const t_message* message);
+
+ 	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.8
+	// Command: KICK
+	// Parameters: <channel> *( "," <channel> ) <user> *( "," <user> ) [<comment>]
+	void cmdKICK(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.7
+	// Command: INVITE
+	// Parameters: Parameters: <nickname> <channel>
+	void cmdINVITE(const int& socket, const t_message* message);
 };
