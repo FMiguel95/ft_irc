@@ -2,6 +2,7 @@ NAME = ircserv
 
 SRC_LIST = main1.cpp \
 			Server.cpp \
+			Commands.cpp \
 			Channel.cpp \
 			Client.cpp 
 

@@ -108,4 +108,9 @@ private:
 	// Command: INVITE
 	// Parameters: Parameters: <nickname> <channel>
 	void cmdINVITE(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.3.1
+	// Command: PRIVMSG
+	// Parameters: <msgtarget> <text to be sent>
+	void cmdPRIVMSG(const int& socket, const t_message* message);
 };
