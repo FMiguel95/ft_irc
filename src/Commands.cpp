@@ -154,10 +154,10 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 	if ((password.empty() || client.passOk) && client.nickOk && client.userOk)
 	{
 		client.isRegistered = true;
-		sendMessage(socket, std::string(":localhost") + " 001 " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
-		sendMessage(socket, std::string(":localhost") + " 002 " + client.nick + " :Your host is localhost, running version v0.1\r\n");
-		sendMessage(socket, std::string(":localhost") + " 003 " + client.nick + " :This sever was created yesterday\r\n");
-		sendMessage(socket, std::string(":localhost") + " 004 " + client.nick + " localhost v0.1 iowghraAs biklmnopstve\r\n"); // ?
+		sendMessage(socket, std::string(":localhost ") + RPL_WELCOME + " " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
+		sendMessage(socket, std::string(":localhost ") + RPL_YOURHOST + " " + client.nick + " :Your host is localhost, running version v0.1\r\n");
+		sendMessage(socket, std::string(":localhost ") + RPL_CREATED + " " + client.nick + " :This sever was created yesterday\r\n");
+		sendMessage(socket, std::string(":localhost ") + RPL_MYINFO + " " + client.nick + " localhost v0.1 iowghraAs biklmnopstve\r\n"); // ?
 	}
 }
 
@@ -168,7 +168,7 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 {
 	Client& client = clients.at(socket);
 
-	// validar se o user esta logado
+	// validar se o user esta registado
 	if (!client.isRegistered)
 		return;
 	
@@ -178,7 +178,7 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 		return;
 	}
 
-	std::vector<std::string> channels;
+	std::vector<std::string> channelSplit;
 	std::vector<std::string> keys;
 
 	// splitting the channels with "," as delimiter
@@ -186,10 +186,10 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 	size_t end;
 	while ((end = message->arguments[0].find(",", start)) != std::string::npos)
 	{
-		channels.push_back(message->arguments[0].substr(start, end - start));
+		channelSplit.push_back(message->arguments[0].substr(start, end - start));
 		start = end + 1;
 	}
-	channels.push_back(message->arguments[0].substr(start));
+	channelSplit.push_back(message->arguments[0].substr(start));
 
 	// splitting the keys with "," as delimiter
 	start = 0;
@@ -205,7 +205,7 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 	// for (size_t i = 0; i < keys.size(); i++)
 	// 	std::c>>>out << keys[i] << std::endl;
 
-	for (std::vector<std::string>::iterator i; i != channels.end(); ++i)
+	for (std::vector<std::string>::iterator i; i != channelSplit.end(); ++i)
 	{
 		// validar se o nome nao contem caracteres incorretos
 		// verificar se o canal ja existe
@@ -235,7 +235,7 @@ void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 {
 	Client& client = clients.at(socket);
 
-	// validar se o user esta logado
+	// validar se o user esta registado
 	if (!client.isRegistered)
 		return;
 
@@ -267,11 +267,12 @@ void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 // https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.3
 // Command: MODE
 // Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
+// Parameters: <nickname> *( ( "+" / "-" ) *( "i" / "w" / "o" / "O" / "r" ) )
 void Server::cmdMODE(const int& socket, const t_message* message)
 {
 	Client& client = clients.at(socket);
 
-	// validar se o user esta logado
+	// validar se o user esta registado
 	if (!client.isRegistered)
 		return;
 }
@@ -283,7 +284,7 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 {
 	Client& client = clients.at(socket);
 
-	// validar se o user esta logado
+	// validar se o user esta registado
 	if (!client.isRegistered)
 		return;
 
@@ -316,7 +317,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 {
 	Client& client = clients.at(socket);
 
-	// validar se o user esta logado
+	// validar se o user esta registado
 	if (!client.isRegistered)
 		return;
 }
@@ -328,7 +329,7 @@ void Server::cmdINVITE(const int& socket, const t_message* message)
 {
 	Client& client = clients.at(socket);
 
-	// validar se o user esta logado
+	// validar se o user esta registado
 	if (!client.isRegistered)
 		return;
 
@@ -346,4 +347,54 @@ void Server::cmdINVITE(const int& socket, const t_message* message)
 
 	// se OK reply RPL_INVITING
 
+}
+
+// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.6
+// Command: LIST
+// Parameters: [ <channel> *( "," <channel> ) [ <target> ] ]
+void Server::cmdLIST(const int& socket, const t_message* message)
+{
+	Client& client = clients.at(socket);
+
+	// validar se o user esta registado
+	if (!client.isRegistered)
+		return;
+	
+	if (message->arguments[0].empty()) // list every channel if no parameters
+	{
+		for (std::list<Channel>::iterator i; channels.size(); ++i)
+		{
+			// reply RPL_LIST
+			std::ostringstream oss;
+			oss << ":localhost " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
+			sendMessage(socket, oss.str());
+		}
+	}
+	else // else parse the parameter and only list those
+	{
+		std::vector<std::string> channelsSplit;
+
+		// splitting the channels with "," as delimiter
+		size_t start = 0;
+		size_t end;
+		while ((end = message->arguments[0].find(",", start)) != std::string::npos)
+		{
+			channelsSplit.push_back(message->arguments[0].substr(start, end - start));
+			start = end + 1;
+		}
+		channelsSplit.push_back(message->arguments[0].substr(start));
+		
+		for (std::list<Channel>::iterator i; channels.size(); ++i)
+		{
+			if (std::find(channelsSplit.begin(), channelsSplit.end(), i->channelName) != channelsSplit.end())
+			{
+				// reply RPL_LIST
+				std::ostringstream oss;
+				oss << ":localhost " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
+				sendMessage(socket, oss.str());
+			}
+		}
+	}
+	// reply RPL_LISTEND
+	sendMessage(socket, std::string(":localhost") + RPL_LISTEND + client.nick + " :End of /LIST\r\n");
 }

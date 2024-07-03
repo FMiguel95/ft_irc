@@ -157,7 +157,6 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 			handleMessage(socket, &this->message);
 	}
 	//std::cout << "buffer:" << client.messageBuffer << std::endl;
-
 }
 
 t_message* Server::parseMessage(std::string& stream)
@@ -218,4 +217,16 @@ void Server::handleMessage(const int& socket, t_message* message)
 		cmdUSER(socket, message);
 	else if (message->command == "JOIN")
 		cmdJOIN(socket, message);
+	else if (message->command == "PRIVMSG")
+		cmdPRIVMSG(socket, message);
+	else if (message->command == "MODE")
+		cmdMODE(socket, message);
+	else if (message->command == "TOPIC")
+		cmdTOPIC(socket, message);
+	else if (message->command == "KICK")
+		cmdKICK(socket, message);
+	else if (message->command == "INVITE")
+		cmdINVITE(socket, message);
+	else if (message->command == "LIST")
+		cmdLIST(socket, message);
 }

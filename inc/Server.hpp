@@ -1,10 +1,11 @@
 #pragma once
 
 #include <map>
+#include <vector>
 #include <list>
 #include <algorithm>
 #include <iostream>
-#include <vector>
+#include <sstream>
 #include <csignal>
 #include <cstring>
 #include <unistd.h>
@@ -14,6 +15,30 @@
 #include <poll.h>
 #include "Client.hpp"
 #include "Channel.hpp"
+
+#define RPL_WELCOME				"001"
+#define RPL_YOURHOST			"002"
+#define RPL_CREATED				"003"
+#define RPL_MYINFO				"004"
+#define RPL_LISTSTART			"321"
+#define RPL_LIST				"322"
+#define RPL_LISTEND				"323"
+#define RPL_NOTOPIC				"331"
+#define RPL_TOPIC				"332"
+#define RPL_INVITING			"341"
+#define ERR_NOSUCHNICK			"401"
+#define ERR_CANNOTSENDTOCHAN	"404"
+#define ERR_NORECIPIENT			"411"
+#define ERR_NOTEXTTOSEND		"412"
+#define ERR_NONICKNAMEGIVEN		"431"
+#define ERR_ERRONEUSNICKNAME	"432"
+#define ERR_NICKNAMEINUSE		"433"
+#define ERR_NOTONCHANNEL		"442"
+#define ERR_USERONCHANNEL		"443"
+#define ERR_NEEDMOREPARAMS		"461"
+#define ERR_ALREADYREGISTRED	"462"
+#define ERR_PASSWDMISMATCH		"464"
+#define ERR_CHANOPRIVSNEEDED	"482"
 
 // https://datatracker.ietf.org/doc/html/rfc2812#section-2.3
 // mensagens em irc são compostas por prefixo(opcional), comando, e argumentos (até 15)
@@ -50,7 +75,7 @@ private:
 
 	// faz parse à string
 	// retira o prefix, command e args e passa para um struct
-	// retorna nulo se for invalido (?)
+	// retorna nulo se for invalido
 	t_message* parseMessage(std::string& stream);
 
 	// decide o que fazer com a mensagem resultante
@@ -113,4 +138,9 @@ private:
 	// Command: PRIVMSG
 	// Parameters: <msgtarget> <text to be sent>
 	void cmdPRIVMSG(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.6
+	// Command: LIST
+	// Parameters: [ <channel> *( "," <channel> ) [ <target> ] ]
+	void cmdLIST(const int& socket, const t_message* message);
 };
