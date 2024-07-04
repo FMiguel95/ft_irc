@@ -1,6 +1,15 @@
 #include "../inc/Client.hpp"
 
 Client::Client() :
+socket(0),
+isRegistered(false),
+passOk(false),
+nickOk(false),
+userOk(false)
+{}
+
+Client::Client(const int& socket) :
+socket(socket),
 isRegistered(false),
 passOk(false),
 nickOk(false),
@@ -8,12 +17,14 @@ userOk(false)
 {}
 
 Client::Client(const Client& src) :
+socket(src.socket),
 isRegistered(src.isRegistered),
 passOk(src.passOk),
 nickOk(src.nickOk),
 userOk(src.userOk),
 nick(src.nick),
 user(src.user),
+hostname(src.hostname),
 _lastActivityTime(src._lastActivityTime)
 {}
 
@@ -23,6 +34,7 @@ Client& Client::operator =(const Client& src)
 {
 	if (this != &src)
 	{
+		socket = src.socket;
 		isRegistered = src.isRegistered;
 	}
 	return *this;

@@ -94,7 +94,9 @@ int Server::run()
 			pfd.revents = 0;
 			fds.push_back(pfd);
 
-			Client client;
+			Client client(clientSocket);
+			client.hostname = inet_ntoa(clientAddress.sin_addr);
+			std::cout << "hostname: " << client.hostname << std::endl;
 			clients.insert(std::pair<int,Client>(clientSocket, client));
 			std::cout << "New client connected: " << inet_ntoa(clientAddress.sin_addr) << ':' << ntohs(clientAddress.sin_port) << '\n';
 		}

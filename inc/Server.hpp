@@ -94,6 +94,8 @@ private:
 	// iterates through the list of clients and pings or disconnects ones that have been inactive too long
 	void checkTimeouts();
 
+	bool isChannelNameValid(const std::string& name) const;
+
 	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
 	// Command: PASS
 	// Parameters: <password>

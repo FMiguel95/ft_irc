@@ -142,7 +142,7 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		// reply ERR_NEEDMOREPARAMS
 		return;
 	}
-	client.user = message->arguments[0];
+	client.user = std::string("~") + message->arguments[0] + "@" + client.hostname;
 	client.userOk = true;
 	// add user to the client and log the client in
 
@@ -157,8 +157,28 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		sendMessage(socket, std::string(":localhost ") + RPL_WELCOME + " " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
 		sendMessage(socket, std::string(":localhost ") + RPL_YOURHOST + " " + client.nick + " :Your host is localhost, running version v0.1\r\n");
 		sendMessage(socket, std::string(":localhost ") + RPL_CREATED + " " + client.nick + " :This sever was created yesterday\r\n");
-		sendMessage(socket, std::string(":localhost ") + RPL_MYINFO + " " + client.nick + " localhost v0.1 iowghraAs biklmnopstve\r\n"); // ?
+		sendMessage(socket, std::string(":localhost ") + RPL_MYINFO + " " + client.nick + " localhost v0.1 o itkl\r\n"); // ?
 	}
+}
+
+bool Server::isChannelNameValid(const std::string& name) const
+{
+	std::cout << "name: " << name << std::endl;	
+	if (name[0] != '#' && name[0] != '&')
+	{
+		std::cout << name[0] << " invalid >:(" << std::endl;
+		return false;
+	}
+	for (size_t i = 1; i < name.size(); i++)
+	{
+		if (name[i] == ' ' || name[i] == ',' || name[i] == 7)
+		{
+			std::cout << "invalid!! >:(" << std::endl;
+			return false;
+		}
+	}
+	std::cout << "valid" << std::endl;
+	return true;
 }
 
 // https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.1
@@ -191,27 +211,81 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 	}
 	channelSplit.push_back(message->arguments[0].substr(start));
 
-	// splitting the keys with "," as delimiter
-	start = 0;
-	while ((end = message->arguments[1].find(",", start)) != std::string::npos)
+	if (!message->arguments[1].empty())
 	{
-		keys.push_back(message->arguments[1].substr(start, end - start));
-		start = end + 1;
+		// splitting the keys with "," as delimiter
+		start = 0;
+		while ((end = message->arguments[1].find(",", start)) != std::string::npos)
+		{
+			keys.push_back(message->arguments[1].substr(start, end - start));
+			start = end + 1;
+		}
+		keys.push_back(message->arguments[1].substr(start));
 	}
-	keys.push_back(message->arguments[1].substr(start));
 
-	// for (size<<<_t i = 0; i < channels.size(); i++)
-	// 	std::cout << channels[i] << std::endl;
-	// for (size_t i = 0; i < keys.size(); i++)
-	// 	std::c>>>out << keys[i] << std::endl;
+	/*for (size_t i = 0; i < channelSplit.size(); i++)
+		std::cout << channelSplit[i] << std::endl;
+	for (size_t i = 0; i < keys.size(); i++)
+		std::cout << keys[i] << std::endl;*/
 
-	for (std::vector<std::string>::iterator i; i != channelSplit.end(); ++i)
+	for (std::vector<std::string>::iterator i = channelSplit.begin(); i != channelSplit.end(); ++i)
 	{
 		// validar se o nome nao contem caracteres incorretos
+		//std::cout << *i << std::endl;
+		if (isChannelNameValid(*i) == false)
+		{
+			// reply ERR_NOSUCHCHANNEL
+			continue;
+		}
+		Channel* channel = NULL;
 		// verificar se o canal ja existe
-			// validar se o canal tem user limit e ja esta cheio
-			// validar se é invite only
-			// validar se esta protegido por password e a key é correta
+		for (std::list<Channel>::iterator j = channels.begin(); j != channels.end(); ++j)
+		{
+			if (j->channelName == *i)
+			{
+				channel = &(*j);
+				// validar se o canal tem user limit e ja esta cheio
+				if (channel->channelMode & MODE_l && channel->userList.size() >= channel->userLimit)
+				{
+					// reply ERR_CHANNELISFULL
+					continue;
+				}
+				// validar se esta protegido por password e a key é correta
+				if (channel->channelMode & MODE_k && std::find(keys.begin(), keys.end(), channel->channelKey) == keys.end())
+				{
+					// reply ERR_BADCHANNELKEY
+					continue;
+				}
+				// validar se é invite only e o user nao foi convidado
+				if (channel->channelMode & MODE_i
+					&& std::find(channel->invitedUsers.begin(), channel->invitedUsers.end(), &client) == channel->invitedUsers.end())
+				{
+					// reply ERR_INVITEONLYCHAN
+					continue;
+				}
+
+				// adicionar o user ao canal
+				channel->userList.insert(std::pair<Client*,char>(&client, 0));
+				// notificar todos os users do canal
+				for (std::map<Client*,char>::iterator k = channel->userList.begin(); k != channel->userList.end(); ++k)
+				{
+					// TODO check hostmask
+					sendMessage(k->first->socket, std::string(":") + client.nick + "!" + client.user + " JOIN " + channel->channelName + "\r\n");
+				}
+				std::cout << "breaking" << std::endl;
+				break;
+			}
+		}
+		std::cout << "good break" << std::endl;
+
+		if (channel == NULL)
+		{
+			Channel newChannel(*i, "");
+			channels.push_back(newChannel);
+			channel = &channels.back();
+		}
+
+		
 		// se nao existir, criar e adicionar o user como operator
 
 		// if the JOIN is successful the server will reply with:
@@ -222,7 +296,7 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 		// notify the other users in the channel
 
 	}
-
+	std::cout << "for loops exited" << std::endl;
 
 	// validacoes de invites etcccccccccccccc
 	
@@ -260,8 +334,8 @@ void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 	// se enviar para outro user
 	// se o nick nao existir reply ERR_NOSUCHNICK
 
+	// para enviar a mensagem, é so fazer relay do message->arguments[1] para cada recipient
 
-	// para enviar a mensagem, é so fazer relay do const t_message* message para cada recipient
 }
 
 // https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.3
@@ -305,8 +379,8 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 	}
 
 	// se for para alterar o topico do canal
-	// validar que é operator reply RPL_TOPIC ou RPL_NOTOPIC
 	// se não, validar que o canal tem modo -t reply RPL_TOPIC ou RPL_NOTOPIC
+	// validar que é operator reply RPL_TOPIC ou RPL_NOTOPIC
 	// se não, reply ERR_CHANOPRIVSNEEDED
 }
 
@@ -396,5 +470,5 @@ void Server::cmdLIST(const int& socket, const t_message* message)
 		}
 	}
 	// reply RPL_LISTEND
-	sendMessage(socket, std::string(":localhost") + RPL_LISTEND + client.nick + " :End of /LIST\r\n");
+	sendMessage(socket, std::string(":localhost ") + RPL_LISTEND + " " + client.nick + " :End of /LIST\r\n");
 }

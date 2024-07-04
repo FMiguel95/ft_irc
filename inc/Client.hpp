@@ -6,6 +6,7 @@
 class Client
 {
 public:
+	int socket;
 	std::string messageBuffer;
 	std::string nick;
 	std::string user;
@@ -17,7 +18,7 @@ public:
 	bool nickOk;
 	bool userOk;
 
-	Client();
+	Client(const int& socket);
 	Client(const Client& src);
 	~Client();
 	Client& operator =(const Client& src);
@@ -29,6 +30,7 @@ public:
 	std::string getUserInfo(char choice) const;
 
 private:
+	Client();
 	// std::string _servername;
 	
 
