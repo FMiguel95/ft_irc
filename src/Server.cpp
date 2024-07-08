@@ -6,14 +6,14 @@ static int error_exit(const char *message)
 	return 1;
 }
 
-Server::Server() : port(6667), password("") {}
+Server::Server() : serverPort(6667), serverPassword("") {}
 
-Server::Server(const int& port, const std::string& password) : 
-											port(port), password(password) {}
+Server::Server(const int& serverPort, const std::string& serverPassword) : 
+											serverPort(serverPort), serverPassword(serverPassword) {}
 
 Server::Server(const Server& src) :
-							port(src.port),
-							password(src.password),
+							serverPort(src.serverPort),
+							serverPassword(src.serverPassword),
 							clients(src.clients),
 							channels(src.channels) {}
 
@@ -23,8 +23,8 @@ Server& Server::operator = (const Server& src)
 {
 	if (this != &src)
 	{
-		port = src.port;
-		password = src.password;
+		serverPort = src.serverPort;
+		serverPassword = src.serverPassword;
 		clients = src.clients;
 		channels = src.channels;
 	}
@@ -47,7 +47,7 @@ int Server::run()
 	sockaddr_in serverAddress;
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_addr.s_addr = INADDR_ANY;
-	serverAddress.sin_port = htons(port);
+	serverAddress.sin_port = htons(serverPort);
 
 	if (bind(serverSocket, (sockaddr*)&serverAddress, sizeof(serverAddress)) == -1)
 		return (error_exit("Error binding socket to port"));
@@ -56,7 +56,7 @@ int Server::run()
 
 	if (listen(serverSocket, SOMAXCONN) == -1)
 		return (error_exit("Error listening for connections"));
-	std::cout << "Server listening on port " << port << '\n';
+	std::cout << "Server listening on port " << serverPort << '\n';
 
 	// POLLING -----------------------------------------------------------------
 
@@ -96,9 +96,9 @@ int Server::run()
 
 			Client client(clientSocket);
 			client.hostname = inet_ntoa(clientAddress.sin_addr);
-			std::cout << "hostname: " << client.hostname << std::endl;
+			//std::cout << "hostname: " << client.hostname << std::endl;
 			clients.insert(std::pair<int,Client>(clientSocket, client));
-			std::cout << "New client connected: " << inet_ntoa(clientAddress.sin_addr) << ':' << ntohs(clientAddress.sin_port) << '\n';
+			std::cout << "\001\e[0;32m" << "New client connected: " << "\e[0m\002" << inet_ntoa(clientAddress.sin_addr) << ':' << ntohs(clientAddress.sin_port) << '\n';
 		}
 		// SEE IF THERE IS DATA TO READ FROM CLIENT
 		for (size_t i = 1; i < fds.size(); i++)
@@ -110,7 +110,7 @@ int Server::run()
 				if (bytesRead <= 0)
 				{
 					if (bytesRead == 0)
-						std::cout << "Client disconnected\n";
+						std::cout << "\001\e[0;31m" << "Client disconnected\n" << "\e[0m\002";
 					else
 					{
 						std::cout << bytesRead << std::endl;
@@ -132,7 +132,7 @@ int Server::run()
 
 void Server::sendMessage(const int& socket, const std::string& message)
 {
-	std::cout << "Sending to socket " << socket << ":" << message;
+	std::cout << "\001\e[0;93m" << "Sending to socket " << socket << " " << "\e[0m\002" << message;
 	send(socket, message.c_str(), message.size(), 0);
 }
 
@@ -145,7 +145,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	{
 		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\r\n"));
 		client.messageBuffer.erase(0, client.messageBuffer.find("\r\n") + 2);
-		std::cout << "Received from socket " << socket << ":" << message << std::endl;
+		std::cout << "\001\e[0;92m" << "Received from socket " << socket << " " << "\e[0m\002" << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
@@ -154,7 +154,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	{
 		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\n"));
 		client.messageBuffer.erase(0, client.messageBuffer.find("\n") + 1);
-		std::cout << "Received from socket " << socket << ":" << message << std::endl;
+		std::cout << "\001\e[0;92m" << "Received from socket " << socket << " " << "\e[0m\002" << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
@@ -211,7 +211,9 @@ t_message* Server::parseMessage(std::string& stream)
 
 void Server::handleMessage(const int& socket, t_message* message)
 {
-	if (message->command == "PASS")
+	if (!message)
+		sendMessage(socket, "GARBAGE\r\n");
+	else if (message->command == "PASS")
 		cmdPASS(socket, message);
 	else if (message->command == "NICK")
 		cmdNICK(socket, message);
@@ -231,6 +233,10 @@ void Server::handleMessage(const int& socket, t_message* message)
 		cmdINVITE(socket, message);
 	else if (message->command == "LIST")
 		cmdLIST(socket, message);
+	else if (message->command == "WHO")
+		cmdLIST(socket, message);
+	else // reply ERR_UNKNOWNCOMMAND
+		sendMessage(socket, std::string(":localhost ") + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
 }
 
 bool Server::isChannelNameValid(const std::string& name) const

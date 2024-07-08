@@ -28,53 +28,66 @@ static bool isNickinUse(const std::string& nick, std::map<int,Client>& clients)
 void Server::cmdNICK(const int& socket, const t_message* message)
 {
 	Client& client = clients.at(socket);
+	// este comando tem dois usos
+	// - escolher o nick na altura do registo -> DONE
+	// - mudar o nick depois de ja estar registado -> DONE
 
-	// WHEN ADDING THE NICK
-	if (client.getUserInfo('n').empty() == true)
+	// se ja estiver registado
+	if (client.isRegistered)
 	{
-		if (client.passOk == false)
+		// validar que o comando tem argumento
+		if (message->arguments[0].empty())
 		{
-			// reply ERR_PASSWDMISMATCH ??? see what to do 
+			// reply ERR_NONICKNAMEGIVEN
 			return;
 		}
+		// validar caracteres do nick
+		if (isNickValid(message->arguments[0]) == false)
+		{
+			// reply ERR_ERRONEUSNICKNAME
+			return;
+		}
+		// validar que o nick nao esta a ser utilizado por outro user
+		if (isNickinUse(message->arguments[0], clients) == true)
+		{
+			// reply ERR_NICKNAMEINUSE
+			return;
+		}
+		// OK
+		// ...notificar outros utilizadores da mudança?
+		return;
 	}
-	// WHEN CHANGING THE NICK
+
+	// WHEN REGISTERING
+
+	// validar que password é necessaria e enviou a pass correta
+	std::cout << "serverPass:" << serverPassword << " client.passOk" << client.passOk << std::endl;
+	if (!serverPassword.empty() && client.passOk == false)
+	{
+		std::cout << "ERR_PASSWDMISMATCH\n";
+		// reply ERR_PASSWDMISMATCH ??? see what to do 
+		return;
+	}
+	// validar que o comando tem argumento -> the user can't be bigger than 9? copilot recommended this
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NONICKNAMEGIVEN
 		return;
 	}
+	// validar caracteres do nick
 	if (isNickValid(message->arguments[0]) == false)
 	{
 		// reply ERR_ERRONEUSNICKNAME
 		return;
 	}
+	// validar que o nick nao esta a ser utilizado por outro user
 	if (isNickinUse(message->arguments[0], clients) == true)
 	{
 		// reply ERR_NICKNAMEINUSE
 		return;
 	}
+	// OK
 	// add nick to the client
 	client.nick = message->arguments[0];
 	client.nickOk = true;
-
-	// este comando tem dois usos
-	// - escolher o nick na altura do registo -> DONE
-	// - mudar o nick depois de ja estar registado -> DONE
-	// se for o segundo caso, notificar outros utilizadores da mudança?
-
-	// se nao estiver registado
-	// 
-	// validar que ja enviou a pass correta -> did this is cmdPASS  -> DONE
-	// validar que o comando tem argumento -> ERR_NONICKNAMEGIVEN -> the user can't be bigger than 9? copilot recommended this
-	// validar caracteres do nick -> ERR_ERRONEUSNICKNAME -> DONE
-	// validar que o nick nao esta a ser utilizado por outro user -> ERR_NICKNAMEINUSE -> DONE
-
-	// se ja estiver registado
-	// 
-	// validar que o comando tem argumento -> ERR_NONICKNAMEGIVEN -> DONE
-	// validar caracteres do nick -> ERR_ERRONEUSNICKNAME  -> DONE
-	// validar que o nick nao esta a ser utilizado por outro user -> ERR_NICKNAMEINUSE -> DONE
-	// OK
-	// ...notificar outros utilizadores da mudança?
 }

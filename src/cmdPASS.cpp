@@ -14,7 +14,7 @@ void Server::cmdPASS(const int& socket, const t_message* message)
 		return; 
 	}
 	// se o servidor nao precisar de password OK
-	if (password.empty())
+	if (serverPassword.empty())
 	{
 		client.passOk = true;
 		return;
@@ -26,13 +26,13 @@ void Server::cmdPASS(const int& socket, const t_message* message)
 		return; 
 	}
 	// se a pass esta mal
-	if (password != message->arguments[0])
+	if (serverPassword != message->arguments[0])
 	{
 		// reply ERR_PASSWDMISMATCH
 		return; 
 	}
 	// se a pass der match
-	if (password == message->arguments[0])
+	if (serverPassword == message->arguments[0])
 	{
 		client.passOk = true;
 		return; 

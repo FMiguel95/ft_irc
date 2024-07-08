@@ -30,6 +30,7 @@
 #define ERR_CANNOTSENDTOCHAN	"404"
 #define ERR_NORECIPIENT			"411"
 #define ERR_NOTEXTTOSEND		"412"
+#define ERR_UNKNOWNCOMMAND		"421"
 #define ERR_NONICKNAMEGIVEN		"431"
 #define ERR_ERRONEUSNICKNAME	"432"
 #define ERR_NICKNAMEINUSE		"433"
@@ -53,7 +54,7 @@ class Server
 {
 public:
 	Server();
-	Server(const int& port, const std::string& password);
+	Server(const int& serverPort, const std::string& serverPassword);
 	Server(const Server& src);
 	~Server();
 	Server& operator =(const Server& src);
@@ -61,8 +62,8 @@ public:
 	int run(); // will be called in main
 
 private:
-	int port;
-	std::string password;
+	int serverPort;
+	std::string serverPassword;
 	std::map<int,Client> clients;	// socket/client pair
 	std::list<Channel> channels;	// list of channels
 	t_message message;

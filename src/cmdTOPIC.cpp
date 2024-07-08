@@ -27,8 +27,7 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 		return;
 	}
 
-	// se for para alterar o topico do canal
-	// se não, validar que o canal tem modo -t reply RPL_TOPIC ou RPL_NOTOPIC
-	// validar que é operator reply RPL_TOPIC ou RPL_NOTOPIC
-	// se não, reply ERR_CHANOPRIVSNEEDED
+	// se canal tiver modo +t e user nao for operator reply ERR_CHANOPRIVSNEEDED
+
+	// tudo OK, reply RPL_TOPIC ou RPL_NOTOPIC para todos os users no canal???
 }

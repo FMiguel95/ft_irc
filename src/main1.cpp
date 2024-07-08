@@ -1,13 +1,13 @@
 #include <iostream>
-#include <vector>
-#include <csignal>
-#include <algorithm>
-#include <cstring>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <poll.h>
+// #include <vector>
+// #include <algorithm>
+// #include <csignal>
+// #include <cstring>
+// #include <unistd.h>
+// #include <netinet/in.h>
+// #include <sys/socket.h>
+// #include <arpa/inet.h>
+// #include <poll.h>
 
 #include "../inc/Server.hpp"
 
@@ -31,9 +31,24 @@ static int error_exit(const char *message)
 	return 1;
 }
 
-int main(void)
+int main(int ac, char** av)
 {
-	Server server;
+	if (ac != 3)
+	{
+		std::cerr << "Usage: ./ircserv <port> <password>" << std::endl;
+		return 1;
+	}
+	std::string portString = av[1];
+	long long port = std::atoll(portString.c_str());
+	if (port < 0 || port > 0xFFFF ||
+		portString.empty() || portString.find_first_not_of("0123456789") != std::string::npos)
+	{
+		std::cerr << "Invalid port" << std::endl;
+		return 1;
+	}
+	std::string password = av[2];;
+
+	Server server(port, password);
 	return server.run();
 
 	/////////////////////////////////////////
