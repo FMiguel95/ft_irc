@@ -232,3 +232,23 @@ void Server::handleMessage(const int& socket, t_message* message)
 	else if (message->command == "LIST")
 		cmdLIST(socket, message);
 }
+
+bool Server::isChannelNameValid(const std::string& name) const
+{
+	std::cout << "name: " << name << std::endl;	
+	if (name[0] != '#' && name[0] != '&')
+	{
+		// std::cout << name[0] << " invalid >:(" << std::endl;
+		return false;
+	}
+	for (size_t i = 1; i < name.size(); i++)
+	{
+		if (name[i] == ' ' || name[i] == ',' || name[i] == 7)
+		{
+			// std::cout << "invalid!! >:(" << std::endl;
+			return false;
+		}
+	}
+	// std::cout << "valid" << std::endl;
+	return true;
+}

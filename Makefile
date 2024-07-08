@@ -2,9 +2,19 @@ NAME = ircserv
 
 SRC_LIST = main1.cpp \
 			Server.cpp \
-			Commands.cpp \
+			Client.cpp \
 			Channel.cpp \
-			Client.cpp 
+			cmdPASS.cpp \
+			cmdNICK.cpp \
+			cmdUSER.cpp \
+			cmdLIST.cpp \
+			cmdJOIN.cpp \
+			cmdTOPIC.cpp \
+			cmdWHO.cpp \
+			cmdMODE.cpp \
+			cmdKICK.cpp \
+			cmdINVITE.cpp \
+			cmdPRIVMSG.cpp
 
 SRC_DIR = src/
 SRC = $(addprefix $(SRC_DIR), $(SRC_LIST))

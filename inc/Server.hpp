@@ -145,4 +145,9 @@ private:
 	// Command: LIST
 	// Parameters: [ <channel> *( "," <channel> ) [ <target> ] ]
 	void cmdLIST(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.1
+	// Command: WHO
+	// Parameters: [ <mask> [ "o" ] ]
+	void cmdWHO(const int& socket, const t_message* message);
 };
