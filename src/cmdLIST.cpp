@@ -38,7 +38,7 @@ void Server::cmdLIST(const int& socket, const t_message* message)
 		}
 		channelsSplit.push_back(message->arguments[0].substr(start));
 		
-		for (std::list<Channel>::iterator i; channels.size(); ++i)
+		for (std::list<Channel>::iterator i = channels.begin(); i != channels.end(); ++i)
 		{
 			if (std::find(channelsSplit.begin(), channelsSplit.end(), i->channelName) != channelsSplit.end())
 			{

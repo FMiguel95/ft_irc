@@ -91,11 +91,11 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 					// TODO check hostmask
 					sendMessage(k->first->socket, std::string(":") + client.nick + "!" + client.user + " JOIN " + channel->channelName + "\r\n");
 				}
-				std::cout << "breaking" << std::endl;
+				//std::cout << "breaking" << std::endl;
 				break;
 			}
 		}
-		std::cout << "good break" << std::endl;
+		//std::cout << "good break" << std::endl;
 
 		if (channel == NULL)
 		{
@@ -115,7 +115,7 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 		// notify the other users in the channel
 
 	}
-	std::cout << "for loops exited" << std::endl;
+	//std::cout << "for loops exited" << std::endl;
 
 	// validacoes de invites etcccccccccccccc
 	

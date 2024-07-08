@@ -234,7 +234,7 @@ void Server::handleMessage(const int& socket, t_message* message)
 	else if (message->command == "LIST")
 		cmdLIST(socket, message);
 	else if (message->command == "WHO")
-		cmdLIST(socket, message);
+		cmdWHO(socket, message);
 	else // reply ERR_UNKNOWNCOMMAND
 		sendMessage(socket, std::string(":localhost ") + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
 }

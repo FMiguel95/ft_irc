@@ -12,4 +12,15 @@ void Server::cmdWHO(const int& socket, const t_message* message)
 		// reply ERR_PASSWDMISMATCH ??? see what to do 
 		return;
 	}
+
+	// mask can be a nickname or a channel
+	// if its a nickname then display info about that user
+	// if its a channel then display info about all users in that channel
+
+	// for each user reply RPL_WHOREPLY
+
+	
+	
+	// reply RPL_ENDOFWHO
+
 }
