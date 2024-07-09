@@ -36,7 +36,7 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		client.isRegistered = true;
 		sendMessage(socket, std::string(":localhost ") + RPL_WELCOME + " " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
 		sendMessage(socket, std::string(":localhost ") + RPL_YOURHOST + " " + client.nick + " :Your host is localhost, running version v0.1\r\n");
-		sendMessage(socket, std::string(":localhost ") + RPL_CREATED + " " + client.nick + " :This sever was created yesterday\r\n");
+		sendMessage(socket, std::string(":localhost ") + RPL_CREATED + " " + client.nick + " :This server was created yesterday\r\n");
 		sendMessage(socket, std::string(":localhost ") + RPL_MYINFO + " " + client.nick + " localhost v0.1 o itkl\r\n"); // ?
 	}
 }

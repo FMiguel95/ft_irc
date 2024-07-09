@@ -33,7 +33,6 @@ private:
 	Client();
 	// std::string _servername;
 	
-
 	std::time_t _lastActivityTime;
 
 };

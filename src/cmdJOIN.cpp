@@ -85,6 +85,7 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 
 				// adicionar o user ao canal
 				channel->userList.insert(std::pair<Client*,char>(&client, 0));
+				// enviar o topico
 				// notificar todos os users do canal
 				for (std::map<Client*,char>::iterator k = channel->userList.begin(); k != channel->userList.end(); ++k)
 				{
@@ -102,8 +103,13 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 			Channel newChannel(*i, "");
 			channels.push_back(newChannel);
 			channel = &channels.back();
-		}
 
+			// CREATE NEW CHANNEL:
+			// adicionar o user ao canal
+			channel->userList.insert(std::pair<Client*,char>(&client, MODE_o));
+			sendMessage(socket, ":" + client.nick + "!" + client.user + " JOIN :" + channel->channelName + "\r\n");
+			// enviar o topico
+		}
 		
 		// se nao existir, criar e adicionar o user como operator
 

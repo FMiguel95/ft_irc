@@ -132,7 +132,7 @@ int Server::run()
 
 void Server::sendMessage(const int& socket, const std::string& message)
 {
-	std::cout << "\001\e[0;93m" << "Sending to socket " << socket << " " << "\e[0m\002" << message;
+	std::cout << "\001\e[0;93m" << "Sending to socket " << socket << ": " << "\e[0m\002" << message;
 	send(socket, message.c_str(), message.size(), 0);
 }
 
@@ -145,7 +145,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	{
 		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\r\n"));
 		client.messageBuffer.erase(0, client.messageBuffer.find("\r\n") + 2);
-		std::cout << "\001\e[0;92m" << "Received from socket " << socket << " " << "\e[0m\002" << message << std::endl;
+		std::cout << "\001\e[0;92m" << "Received from socket " << socket << ": " << "\e[0m\002" << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
@@ -154,7 +154,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	{
 		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\n"));
 		client.messageBuffer.erase(0, client.messageBuffer.find("\n") + 1);
-		std::cout << "\001\e[0;92m" << "Received from socket " << socket << " " << "\e[0m\002" << message << std::endl;
+		std::cout << "\001\e[0;92m" << "Received from socket " << socket << ": " << "\e[0m\002" << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
@@ -212,8 +212,14 @@ t_message* Server::parseMessage(std::string& stream)
 void Server::handleMessage(const int& socket, t_message* message)
 {
 	if (!message)
+	{
 		sendMessage(socket, "GARBAGE\r\n");
-	else if (message->command == "PASS")
+		return;
+	}
+	for (int i = 0; message->command[i]; i++)
+		message->command[i] = std::toupper(message->command[i]);
+
+	if (message->command == "PASS")
 		cmdPASS(socket, message);
 	else if (message->command == "NICK")
 		cmdNICK(socket, message);
@@ -235,8 +241,30 @@ void Server::handleMessage(const int& socket, t_message* message)
 		cmdLIST(socket, message);
 	else if (message->command == "WHO")
 		cmdWHO(socket, message);
+	else if (message->command == "CAP")
+		return;
 	else // reply ERR_UNKNOWNCOMMAND
 		sendMessage(socket, std::string(":localhost ") + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
+}
+
+Channel* Server::getChannelByName(const std::string& name) const
+{
+	for (std::list<Channel>::const_iterator i = channels.begin(); i != channels.end(); ++i)
+	{
+		if (i->channelName == name)
+			return (Channel*)&*i;
+	}
+	return NULL;
+}
+
+Client* Server::getClientByNick(const std::string& nick) const
+{
+	for (std::map<int, Client>::const_iterator i = clients.begin(); i != clients.end(); ++i)
+	{
+		if (i->second.nick == nick)
+			return (Client*)&i->second;
+	}
+	return NULL;
 }
 
 bool Server::isChannelNameValid(const std::string& name) const

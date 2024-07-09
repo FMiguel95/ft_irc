@@ -61,7 +61,7 @@ void Server::cmdNICK(const int& socket, const t_message* message)
 	// WHEN REGISTERING
 
 	// validar que password é necessaria e enviou a pass correta
-	std::cout << "serverPass:" << serverPassword << " client.passOk" << client.passOk << std::endl;
+	//std::cout << "serverPass:" << serverPassword << " client.passOk" << client.passOk << std::endl;
 	if (!serverPassword.empty() && client.passOk == false)
 	{
 		std::cout << "ERR_PASSWDMISMATCH\n";

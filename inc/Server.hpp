@@ -5,6 +5,7 @@
 #include <list>
 #include <algorithm>
 #include <iostream>
+#include <cctype>
 #include <sstream>
 #include <csignal>
 #include <cstring>
@@ -24,11 +25,13 @@
 #define RPL_LISTSTART			"321"
 #define RPL_LIST				"322"
 #define RPL_LISTEND				"323"
+#define RPL_CHANNELMODEIS		"324"
 #define RPL_NOTOPIC				"331"
 #define RPL_TOPIC				"332"
 #define RPL_INVITING			"341"
 #define RPL_WHOREPLY			"352"
 #define ERR_NOSUCHNICK			"401"
+#define ERR_NOSUCHCHANNEL		"403"
 #define ERR_CANNOTSENDTOCHAN	"404"
 #define ERR_NORECIPIENT			"411"
 #define ERR_NOTEXTTOSEND		"412"
@@ -84,10 +87,9 @@ private:
 	// decide o que fazer com a mensagem resultante
 	void handleMessage(const int& socket, t_message* message);
 
-	// funçao para validar o registo de um client
-	// returns true if valid, else false
-	// checks if the ip already exists in the clients list, then validates the parameters given (pass, nick, user, etc...)
-	bool validateRegistration(const int& socket, std::string& buffer);
+	Channel* getChannelByName(const std::string& name) const;
+
+	Client* getClientByNick(const std::string& nick) const;
 
 	// closes connection to a specific socket
 	// sends appropriate message and removes client from the list, etc..
