@@ -41,7 +41,7 @@ Channel& Channel::operator =(const Channel& src)
 	return *this;
 }
 
-std::map<Client*,char>::const_iterator& Channel::getClientInChannel(const std::string& nick) const
+std::map<Client*,char>::const_iterator Channel::getClientInChannel(const std::string& nick) const
 {
 	for (std::map<Client*,char>::const_iterator it = userList.begin(); it != userList.end(); ++it)
 	{

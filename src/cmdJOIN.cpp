@@ -1,5 +1,73 @@
 #include "../inc/Server.hpp"
 
+void Server::addClientToChannel(Client& client, Channel& channel)
+{
+	if (channel.userList.empty())
+		channel.userList.insert(std::pair<Client*,char>(&client, MODE_o));
+	else
+		channel.userList.insert(std::pair<Client*,char>(&client, 0));
+	// notificar todos os users do canal
+	for (std::map<Client*,char>::iterator i = channel.userList.begin(); i != channel.userList.end(); ++i)
+		sendMessage(i->first->socket, std::string(":") + client.nick + "!" + client.user + " JOIN " + channel.channelName + "\r\n");
+	// enviar o topico reply RPL_TOPIC ou RPL_NOTOPIC
+	// talvez enviar tambem RPL_TOPICWHOTIME
+	// enviar a lista de nomes -> reply RPL_NAMREPLY e RPL_ENDOFNAMES
+}
+
+void Server::attempJoin(Client& client, const std::string& channelName, const std::string& providedKey)
+{
+	//std::cout << channelName << std::endl;
+	// validar se o nome nao contem caracteres incorretos
+	if (Server::isChannelNameValid(channelName) == false)
+	{
+		// reply ERR_NOSUCHCHANNEL
+		return;
+	}
+	Channel* channel = NULL;
+	// verificar se o canal ja existe
+	for (std::list<Channel>::iterator i = channels.begin(); i != channels.end(); ++i)
+	{
+		// se ja existir
+		if (i->channelName == channelName)
+		{
+			channel = &(*i);
+			// validar se o canal tem user limit e ja esta cheio
+			if (channel->channelMode & MODE_l && channel->userList.size() >= channel->userLimit)
+			{
+				// reply ERR_CHANNELISFULL
+				continue;
+			}
+			// validar se esta protegido por password e a key é correta
+			if (channel->channelMode & MODE_k && channel->channelKey != providedKey)
+			{
+				// reply ERR_BADCHANNELKEY
+				continue;
+			}
+			// validar se é invite only e o user nao foi convidado
+			if (channel->channelMode & MODE_i
+				&& std::find(channel->invitedUsers.begin(), channel->invitedUsers.end(), &client) == channel->invitedUsers.end())
+			{
+				// reply ERR_INVITEONLYCHAN
+				continue;
+			}
+			// adicionar o user ao canal
+			addClientToChannel(client, *channel);
+			break;
+		}
+	}
+	// if the channel wasnt found
+	if (channel == NULL)
+	{
+		// create the channel
+		Channel newChannel(channelName, "");
+		channels.push_back(newChannel);
+		channel = &channels.back();
+
+		// adicionar o user ao canal
+		addClientToChannel(client, *channel);
+	}
+}
+
 // https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.1
 // Command: JOIN
 // Parameters: ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
@@ -42,87 +110,17 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 		keys.push_back(message->arguments[1].substr(start));
 	}
 
-	/*for (size_t i = 0; i < channelSplit.size(); i++)
-		std::cout << channelSplit[i] << std::endl;
-	for (size_t i = 0; i < keys.size(); i++)
-		std::cout << keys[i] << std::endl;*/
+	// for (size_t i = 0; i < channelSplit.size(); i++)
+	// 	std::cout << channelSplit[i] << std::endl;
+	// for (size_t i = 0; i < keys.size(); i++)
+	// 	std::cout << keys[i] << std::endl;
 
+	// for each channel the user is trying to join
 	for (std::vector<std::string>::iterator i = channelSplit.begin(); i != channelSplit.end(); ++i)
 	{
-		// validar se o nome nao contem caracteres incorretos
-		//std::cout << *i << std::endl;
-		if (isChannelNameValid(*i) == false)
-		{
-			// reply ERR_NOSUCHCHANNEL
-			continue;
-		}
-		Channel* channel = NULL;
-		// verificar se o canal ja existe
-		for (std::list<Channel>::iterator j = channels.begin(); j != channels.end(); ++j)
-		{
-			if (j->channelName == *i)
-			{
-				channel = &(*j);
-				// validar se o canal tem user limit e ja esta cheio
-				if (channel->channelMode & MODE_l && channel->userList.size() >= channel->userLimit)
-				{
-					// reply ERR_CHANNELISFULL
-					continue;
-				}
-				// validar se esta protegido por password e a key é correta
-				if (channel->channelMode & MODE_k && std::find(keys.begin(), keys.end(), channel->channelKey) == keys.end())
-				{
-					// reply ERR_BADCHANNELKEY
-					continue;
-				}
-				// validar se é invite only e o user nao foi convidado
-				if (channel->channelMode & MODE_i
-					&& std::find(channel->invitedUsers.begin(), channel->invitedUsers.end(), &client) == channel->invitedUsers.end())
-				{
-					// reply ERR_INVITEONLYCHAN
-					continue;
-				}
-
-				// adicionar o user ao canal
-				channel->userList.insert(std::pair<Client*,char>(&client, 0));
-				// enviar o topico
-				// notificar todos os users do canal
-				for (std::map<Client*,char>::iterator k = channel->userList.begin(); k != channel->userList.end(); ++k)
-				{
-					// TODO check hostmask
-					sendMessage(k->first->socket, std::string(":") + client.nick + "!" + client.user + " JOIN " + channel->channelName + "\r\n");
-				}
-				//std::cout << "breaking" << std::endl;
-				break;
-			}
-		}
-		//std::cout << "good break" << std::endl;
-
-		if (channel == NULL)
-		{
-			Channel newChannel(*i, "");
-			channels.push_back(newChannel);
-			channel = &channels.back();
-
-			// CREATE NEW CHANNEL:
-			// adicionar o user ao canal
-			channel->userList.insert(std::pair<Client*,char>(&client, MODE_o));
-			sendMessage(socket, ":" + client.nick + "!" + client.user + " JOIN :" + channel->channelName + "\r\n");
-			// enviar o topico
-		}
-		
-		// se nao existir, criar e adicionar o user como operator
-
-		// if the JOIN is successful the server will reply with:
-		// a JOIN message
-		// the channels topic with RPL_TOPIC, or RPL_NOTOPIC if no topic is set
-		// the list of users currently in the channel
-
-		// notify the other users in the channel
-
-	}
-	//std::cout << "for loops exited" << std::endl;
-
-	// validacoes de invites etcccccccccccccc
-	
+		if (i - channelSplit.begin() < keys.size())
+			attempJoin(client, *i, keys[i - channelSplit.begin()]);
+		else
+			attempJoin(client, *i, "");
+	}	
 }

@@ -269,7 +269,7 @@ Client* Server::getClientByNick(const std::string& nick) const
 
 bool Server::isChannelNameValid(const std::string& name) const
 {
-	std::cout << "name: " << name << std::endl;	
+	//std::cout << "name: " << name << std::endl;	
 	if (name[0] != '#' && name[0] != '&')
 	{
 		// std::cout << name[0] << " invalid >:(" << std::endl;

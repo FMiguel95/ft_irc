@@ -30,6 +30,8 @@
 #define RPL_TOPIC				"332"
 #define RPL_INVITING			"341"
 #define RPL_WHOREPLY			"352"
+#define RPL_NAMREPLY			"353"
+#define RPL_ENDOFNAMES			"366"
 #define ERR_NOSUCHNICK			"401"
 #define ERR_NOSUCHCHANNEL		"403"
 #define ERR_CANNOTSENDTOCHAN	"404"
@@ -120,6 +122,8 @@ private:
 	// Command: JOIN
 	// Parameters: ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
 	void cmdJOIN(const int& socket, const t_message* message);
+	void attempJoin(Client& client, const std::string& channelName, const std::string& channelKey);
+	void addClientToChannel(Client& client, Channel& channel);
 
 	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.3
 	// Command: MODE
