@@ -27,7 +27,8 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		return;
 	}
 	// add user to the client and log the client in
-	client.user = std::string("~") + message->arguments[0] + "@" + client.hostname;
+	client.user = std::string("~") + message->arguments[0];// + "@" + client.hostname;
+	client.userAtHost = client.user + "@" + client.hostname;
 	client.userOk = true;
 
 	// se a pass nick e user do client estiverem OK permitir login no servidor

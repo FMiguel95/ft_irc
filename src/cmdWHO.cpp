@@ -36,7 +36,7 @@ void Server::cmdWHO(const int& socket, const t_message* message)
 		if (user)
 		{
 			// reply RPL_WHOREPLY
-			sendMessage(socket, std::string(":localhost ") + RPL_WHOREPLY + " " + client.nick + " " + user->nick + " " + user->user + " " + user->hostname + " localhost " + user->nick + " H :0 " + user->realname + "\r\n");
+			sendMessage(socket, std::string(":localhost ") + RPL_WHOREPLY + " " + client.nick + " * " + user->nick + " " + user->user + " " + user->hostname + " localhost " + user->nick + " H :0 " + user->realname + "\r\n");
 		}
 	}
 	// reply RPL_ENDOFWHO

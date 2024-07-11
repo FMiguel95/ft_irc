@@ -11,6 +11,7 @@ public:
 	std::string nick;
 	std::string user;
 	std::string hostname;
+	std::string userAtHost;
 	std::string realname;
 
 	bool isRegistered;

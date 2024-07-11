@@ -8,10 +8,29 @@ void Server::addClientToChannel(Client& client, Channel& channel)
 		channel.userList.insert(std::pair<Client*,char>(&client, 0));
 	// notificar todos os users do canal
 	for (std::map<Client*,char>::iterator i = channel.userList.begin(); i != channel.userList.end(); ++i)
-		sendMessage(i->first->socket, std::string(":") + client.nick + "!" + client.user + " JOIN " + channel.channelName + "\r\n");
+		sendMessage(i->first->socket, std::string(":") + client.nick + "!" + client.userAtHost + " JOIN " + channel.channelName + "\r\n");
 	// enviar o topico reply RPL_TOPIC ou RPL_NOTOPIC
 	// talvez enviar tambem RPL_TOPICWHOTIME
 	// enviar a lista de nomes -> reply RPL_NAMREPLY e RPL_ENDOFNAMES
+	std::string message = std::string(":localhost ") + RPL_NAMREPLY + " " + client.nick + " = " + channel.channelName + " :";
+	for (std::map<Client*,char>::iterator i = channel.userList.begin(); i != channel.userList.end(); ++i)
+	{
+		std::string nextNickname;
+		if (i->second & MODE_o)
+			nextNickname += "@";
+		nextNickname += i->first->nick;
+		if (message.length() + nextNickname.length() > 510)	// test later
+		{
+			message += "\r\n";
+			sendMessage(client.socket, message);
+			message = std::string(":localhost ") + RPL_NAMREPLY + " " + client.nick + " = " + channel.channelName + " :";
+		}
+		message += nextNickname + " ";
+	}
+	message += "\r\n";
+	sendMessage(client.socket, message);
+	// reply RPL_ENDOFNAMES
+	sendMessage(client.socket, std::string(":localhost ") + RPL_ENDOFNAMES + " " + client.nick + " " + channel.channelName + " :End of /NAMES list.\r\n");
 }
 
 void Server::attempJoin(Client& client, const std::string& channelName, const std::string& providedKey)
