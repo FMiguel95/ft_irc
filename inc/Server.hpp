@@ -159,4 +159,10 @@ private:
 	// Command: WHO
 	// Parameters: [ <mask> [ "o" ] ]
 	void cmdWHO(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.2
+	// Command: WHOIS
+	// Parameters: [ <target> ] <mask> *( "," <mask> )
+	void cmdWHOIS(const int& socket, const t_message* message);
+
 };

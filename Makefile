@@ -11,6 +11,7 @@ SRC_LIST = main1.cpp \
 			cmdJOIN.cpp \
 			cmdTOPIC.cpp \
 			cmdWHO.cpp \
+			cmdWHOIS.cpp \
 			cmdMODE.cpp \
 			cmdKICK.cpp \
 			cmdINVITE.cpp \

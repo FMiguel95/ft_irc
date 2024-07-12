@@ -241,6 +241,8 @@ void Server::handleMessage(const int& socket, t_message* message)
 		cmdLIST(socket, message);
 	else if (message->command == "WHO")
 		cmdWHO(socket, message);
+	else if (message->command == "WHOIS")
+		cmdWHOIS(socket, message);
 	else if (message->command == "CAP")
 		return;
 	else // reply ERR_UNKNOWNCOMMAND

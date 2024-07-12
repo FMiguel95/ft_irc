@@ -48,7 +48,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		}
 		// ver se o user tem permissao para alterar os modos do canal
 		std::map<Client*,char>::const_iterator i = channel->getClientInChannel(client.nick);
-		if (i == channel->userList.end() || i->second & MODE_o == 0)
+		if (i == channel->userList.end() || (i->second & MODE_o) == 0)
 		{
 			// reply ERR_CHANOPRIVSNEEDED
 			sendMessage(socket, std::string(":localhost ") + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + channel->channelName + " :You're not channel operator\r\n");
