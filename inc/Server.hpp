@@ -21,6 +21,7 @@
 #define RPL_YOURHOST			"002"
 #define RPL_CREATED				"003"
 #define RPL_MYINFO				"004"
+#define RPL_UMODEIS				"221"
 #define RPL_ENDOFWHO			"315"
 #define RPL_LISTSTART			"321"
 #define RPL_LIST				"322"
@@ -32,6 +33,7 @@
 #define RPL_WHOREPLY			"352"
 #define RPL_NAMREPLY			"353"
 #define RPL_ENDOFNAMES			"366"
+
 #define ERR_NOSUCHNICK			"401"
 #define ERR_NOSUCHCHANNEL		"403"
 #define ERR_CANNOTSENDTOCHAN	"404"
@@ -47,6 +49,7 @@
 #define ERR_ALREADYREGISTRED	"462"
 #define ERR_PASSWDMISMATCH		"464"
 #define ERR_CHANOPRIVSNEEDED	"482"
+#define ERR_UMODEUNKNOWNFLAG	"501"
 
 // https://datatracker.ietf.org/doc/html/rfc2812#section-2.3
 // mensagens em irc são compostas por prefixo(opcional), comando, e argumentos (até 15)

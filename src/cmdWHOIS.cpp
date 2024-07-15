@@ -24,7 +24,7 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 	if (!message->arguments[1].empty())
 	{
 		// if the target is not a nick, it's a server -> reply ERR_NOSUCHSERVER
-		if (getClientByNick(message->arguments[0]) == nullptr)
+		if (getClientByNick(message->arguments[0]) == NULL)
 		{
 			// not sure how it should behave look at this later
 			// reply ERR_NOSUCHSERVER 
@@ -35,7 +35,7 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 	}
 
 	// validate that the nick (<mask>) exists -> reply ERR_NOSUCHNICK
-	if (getClientByNick(message->arguments[index]) == nullptr)
+	if (getClientByNick(message->arguments[index]) == NULL)
 	{
 		// reply ERR_NOSUCHNICK
 		return;
