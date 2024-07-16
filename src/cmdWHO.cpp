@@ -14,7 +14,7 @@ void Server::cmdWHO(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// implementar quando nao tem parametros - listar todos os users que nao tem canal em comum com o user
-		sendMessage(socket, std::string(":localhost ") + RPL_ENDOFWHO + " " + client.nick + " :End of /WHO list\r\n");
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ENDOFWHO + " " + client.nick + " :End of /WHO list\r\n");
 		return;
 	}
 
@@ -26,7 +26,7 @@ void Server::cmdWHO(const int& socket, const t_message* message)
 			// for each user in the channel reply RPL_WHOREPLY
 			for (std::map<Client *, char>::iterator it = channel->userList.begin(); it != channel->userList.end(); ++it)
 			{
-				sendMessage(socket, std::string(":localhost ") + RPL_WHOREPLY + " " + client.nick + " " + channel->channelName + " " + it->first->user + " " + it->first->hostname + " localhost " + it->first->nick + " H :0 " + it->first->realname + "\r\n");
+				sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_WHOREPLY + " " + client.nick + " " + channel->channelName + " " + it->first->user + " " + it->first->hostname + " localhost " + it->first->nick + " H :0 " + it->first->realname + "\r\n");
 			}
 		}
 	}
@@ -36,9 +36,9 @@ void Server::cmdWHO(const int& socket, const t_message* message)
 		if (user)
 		{
 			// reply RPL_WHOREPLY
-			sendMessage(socket, std::string(":localhost ") + RPL_WHOREPLY + " " + client.nick + " * " + user->nick + " " + user->user + " " + user->hostname + " localhost " + user->nick + " H :0 " + user->realname + "\r\n");
+			sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_WHOREPLY + " " + client.nick + " * " + user->nick + " " + user->user + " " + user->hostname + " localhost " + user->nick + " H :0 " + user->realname + "\r\n");
 		}
 	}
 	// reply RPL_ENDOFWHO
-	sendMessage(socket, std::string(":localhost ") + RPL_ENDOFWHO + " " + client.nick + " :End of /WHO list\r\n");
+	sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ENDOFWHO + " " + client.nick + " :End of /WHO list\r\n");
 }

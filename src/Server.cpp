@@ -6,16 +6,19 @@ static int error_exit(const char *message)
 	return 1;
 }
 
-Server::Server() : serverPort(6667), serverPassword("") {}
+Server::Server() : serverPort(6667), serverPassword(""), serverCreationTime(std::time(NULL)) {}
 
 Server::Server(const int& serverPort, const std::string& serverPassword) : 
-											serverPort(serverPort), serverPassword(serverPassword) {}
+											serverPort(serverPort),
+											serverPassword(serverPassword),
+											serverCreationTime(std::time(NULL)) {}
 
 Server::Server(const Server& src) :
 							serverPort(src.serverPort),
 							serverPassword(src.serverPassword),
 							clients(src.clients),
-							channels(src.channels) {}
+							channels(src.channels),
+							serverCreationTime(src.serverCreationTime) {}
 
 Server::~Server() {}
 
@@ -27,6 +30,7 @@ Server& Server::operator = (const Server& src)
 		serverPassword = src.serverPassword;
 		clients = src.clients;
 		channels = src.channels;
+		serverCreationTime = src.serverCreationTime;
 	}
 	return *this;
 }
@@ -246,7 +250,7 @@ void Server::handleMessage(const int& socket, t_message* message)
 	else if (message->command == "CAP")
 		return;
 	else // reply ERR_UNKNOWNCOMMAND
-		sendMessage(socket, std::string(":localhost ") + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
 }
 
 Channel* Server::getChannelByName(const std::string& name) const

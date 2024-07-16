@@ -1,18 +1,5 @@
 #include <iostream>
-// #include <vector>
-// #include <algorithm>
-// #include <csignal>
-// #include <cstring>
-// #include <unistd.h>
-// #include <netinet/in.h>
-// #include <sys/socket.h>
-// #include <arpa/inet.h>
-// #include <poll.h>
-
 #include "../inc/Server.hpp"
-
-#define PORT		6667
-#define BUFFER_SIZE	1024
 
 bool run = true;
 
@@ -31,6 +18,17 @@ static int error_exit(const char *message)
 	return 1;
 }
 
+// TODO
+//
+// PRIVMSG
+// WHOIS
+// WHO replies may be weird
+// implement MODE klo
+// error replies all around
+// KICK
+// PART
+// QUIT
+
 int main(int ac, char** av)
 {
 	if (ac != 3)
@@ -46,7 +44,7 @@ int main(int ac, char** av)
 		std::cerr << "Invalid port" << std::endl;
 		return 1;
 	}
-	std::string password = av[2];;
+	std::string password = av[2];
 
 	Server server(port, password);
 	return server.run();

@@ -32,12 +32,13 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 	client.userOk = true;
 
 	// se a pass nick e user do client estiverem OK permitir login no servidor
-	if ((serverPassword.empty() || client.passOk) && client.nickOk && client.userOk)
+	if (!client.isRegistered && (serverPassword.empty() || client.passOk) && client.nickOk && client.userOk)
 	{
 		client.isRegistered = true;
-		sendMessage(socket, std::string(":localhost ") + RPL_WELCOME + " " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
-		sendMessage(socket, std::string(":localhost ") + RPL_YOURHOST + " " + client.nick + " :Your host is localhost, running version v0.1\r\n");
-		sendMessage(socket, std::string(":localhost ") + RPL_CREATED + " " + client.nick + " :This server was created yesterday\r\n");
-		sendMessage(socket, std::string(":localhost ") + RPL_MYINFO + " " + client.nick + " localhost v0.1 o itkl\r\n"); // ?
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_WELCOME + " " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_YOURHOST + " " + client.nick + " :Your host is " + SERVER_NAME + ", running version v0.1\r\n");
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_CREATED + " " + client.nick + " :This server was created " + std::asctime(std::localtime(&serverCreationTime)));
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_MYINFO + " " + client.nick + " localhost v0.1 o iklt\r\n"); // ?
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ISUPPORT + " " + client.nick + " ? ?? ??? :are supported by this server\r\n"); // ?
 	}
 }

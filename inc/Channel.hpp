@@ -36,6 +36,7 @@ public:
 	Channel& operator =(const Channel& src);
 
 	std::map<Client*,char>::const_iterator getClientInChannel(const std::string& nick) const;
+	void broadcastMessage(); // send message to everyone in the channel
 
 private:
 	Channel();

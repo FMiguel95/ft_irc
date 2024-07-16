@@ -15,7 +15,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 	// se nao tem parametros, reply ERR_NEEDMOREPARAMS
 	if (message->arguments[0].empty())
 	{
-		sendMessage(socket, std::string(":localhost ") + ERR_NEEDMOREPARAMS + " " + client.nick + " MODE :Not enough parameters\r\n");
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_NEEDMOREPARAMS + " " + client.nick + " MODE :Not enough parameters\r\n");
 		return;
 	}
 
@@ -26,14 +26,14 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		if (!channel)
 		{
 			// reply ERR_NOSUCHCHANNEL
-			sendMessage(socket, std::string(":localhost ") + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
+			sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
 			return;
 		}
 		// se nao tem mais parametros, reply RPL_CHANNELMODEIS
 		if (message->arguments[1].empty())
 		{
 			std::string reply;
-			reply = std::string(":localhost ") + RPL_CHANNELMODEIS + " " + client.nick + " " + channel->channelName + " ";
+			reply = std::string(":") + SERVER_NAME " " + RPL_CHANNELMODEIS + " " + client.nick + " " + channel->channelName + " ";
 			if (channel->channelMode & MODE_i)
 				reply += "i";
 			if (channel->channelMode & MODE_t)
@@ -51,11 +51,12 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		if (i == channel->userList.end() || (i->second & MODE_o) == 0)
 		{
 			// reply ERR_CHANOPRIVSNEEDED
-			sendMessage(socket, std::string(":localhost ") + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + channel->channelName + " :You're not channel operator\r\n");
+			sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + channel->channelName + " :You're not channel operator\r\n");
 			return;
 		}
 		// iterar pelos modos
 		bool setMode = true;
+		int argIndex = -1;
 		for (size_t i = 0; i < message->arguments[1].length(); i++)
 		{
 			switch (message->arguments[1][i])
@@ -67,23 +68,41 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 				setMode = false;
 				break;
 			case 'i':
-				
+				if (setMode)
+				{
+					channel->channelMode |= MODE_i;
+					sendMessage(socket, std::string(":") + client.nick + " MODE " + channel->channelName + " +i\r\n");
+				}
+				else
+				{
+					channel->channelMode &= ~MODE_i;
+					sendMessage(socket, std::string(":") + client.nick + " MODE " + channel->channelName + " -i\r\n");
+				}
 				break;
 			case 't':
-				
+				if (setMode)
+				{
+					channel->channelMode |= MODE_t;
+					sendMessage(socket, std::string(":") + client.nick + " MODE " + channel->channelName + " +t\r\n");
+				}
+				else
+				{
+					channel->channelMode &= ~MODE_t;
+					sendMessage(socket, std::string(":") + client.nick + " MODE " + channel->channelName + " -t\r\n");
+				}
 				break;
 			case 'k':
-				
+				argIndex++;
 				break;
 			case 'l':
-				
+				argIndex++;
 				break;
 			case 'o':
-				
+				argIndex++;
 				break;
 			default:
 				// reply ERR_UMODEUNKNOWNFLAG
-				sendMessage(socket, std::string(":localhost ") + ERR_UMODEUNKNOWNFLAG + " " + client.nick + " :Unknown MODE flag\r\n");
+				sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_UMODEUNKNOWNFLAG + " " + client.nick + " :Unknown MODE flag\r\n");
 				break;
 			}
 		}
@@ -101,7 +120,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		if (message->arguments[1].empty())
 		{
 			std::string reply;
-			reply = std::string(":localhost ") + RPL_UMODEIS + " " + client.nick + "\r\n";
+			reply = std::string(":") + SERVER_NAME " " + RPL_UMODEIS + " " + client.nick + "\r\n";
 			// no user modes supported
 			// +o is different from channel to channel
 			sendMessage(socket, reply);

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
+#include <ctime>
 #include <sstream>
 #include <csignal>
 #include <cstring>
@@ -17,10 +18,13 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
+#define SERVER_NAME				"localhost"
+
 #define RPL_WELCOME				"001"
 #define RPL_YOURHOST			"002"
 #define RPL_CREATED				"003"
 #define RPL_MYINFO				"004"
+#define RPL_ISUPPORT			"005"
 #define RPL_UMODEIS				"221"
 #define RPL_ENDOFWHO			"315"
 #define RPL_LISTSTART			"321"
@@ -72,6 +76,7 @@ public:
 	int run(); // will be called in main
 
 private:
+	time_t serverCreationTime;
 	int serverPort;
 	std::string serverPassword;
 	std::map<int,Client> clients;	// socket/client pair
