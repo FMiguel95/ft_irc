@@ -140,6 +140,14 @@ void Server::sendMessage(const int& socket, const std::string& message)
 	send(socket, message.c_str(), message.size(), 0);
 }
 
+void Server::broadcastMessage(Channel& channel, const std::string& message)
+{
+	for (std::map<Client*,char>::iterator i = channel.userList.begin(); i != channel.userList.end(); ++i)
+	{
+		sendMessage(i->first->socket, message);
+	}
+}
+
 void Server::receiveMessage(const int& socket, std::string& stream)
 {
 	Client& client = clients.at(socket);

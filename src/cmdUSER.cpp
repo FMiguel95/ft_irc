@@ -39,6 +39,6 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_YOURHOST + " " + client.nick + " :Your host is " + SERVER_NAME + ", running version v0.1\r\n");
 		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_CREATED + " " + client.nick + " :This server was created " + std::asctime(std::localtime(&serverCreationTime)));
 		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_MYINFO + " " + client.nick + " localhost v0.1 o iklt\r\n"); // ?
-		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ISUPPORT + " " + client.nick + " ? ?? ??? :are supported by this server\r\n"); // ?
+		// sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ISUPPORT + " " + client.nick + " ? ?? ??? :are supported by this server\r\n"); // ?
 	}
 }

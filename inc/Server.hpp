@@ -84,6 +84,7 @@ private:
 	t_message message;
 
 	void sendMessage(const int& socket, const std::string& message);
+	void broadcastMessage(Channel& channel, const std::string& message);
 
 	// recebe uma mensagem de um client e adiciona ao buffer - adicionar à lista de clients se ainda não existir?
 	// se detetar \r\n, construir um struct t_message e remover do buffer ao estilo gnl (sorry anna)
@@ -172,5 +173,15 @@ private:
 	// Command: WHOIS
 	// Parameters: [ <target> ] <mask> *( "," <mask> )
 	void cmdWHOIS(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.7.2
+	// Command: PING
+	// Parameters: <server1> [ <server2> ]
+	void cmdPING(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.7.3
+	// Command: PONG
+	// Parameters: <server> [ <server2> ]
+	void cmdPONG(const int& socket, const t_message* message);
 
 };

@@ -7,8 +7,9 @@ void Server::addClientToChannel(Client& client, Channel& channel)
 	else
 		channel.userList.insert(std::pair<Client*,char>(&client, 0));
 	// notificar todos os users do canal
-	for (std::map<Client*,char>::iterator i = channel.userList.begin(); i != channel.userList.end(); ++i)
-		sendMessage(i->first->socket, std::string(":") + client.nick + "!" + client.userAtHost + " JOIN " + channel.channelName + "\r\n");
+	// for (std::map<Client*,char>::iterator i = channel.userList.begin(); i != channel.userList.end(); ++i)
+	// 	sendMessage(i->first->socket, std::string(":") + client.nick + "!" + client.userAtHost + " JOIN " + channel.channelName + "\r\n");
+	broadcastMessage(channel, std::string(":") + client.nick + "!" + client.userAtHost + " JOIN " + channel.channelName + "\r\n");
 	// enviar o topico reply RPL_TOPIC ou RPL_NOTOPIC
 	// talvez enviar tambem RPL_TOPICWHOTIME
 	// enviar a lista de nomes -> reply RPL_NAMREPLY e RPL_ENDOFNAMES

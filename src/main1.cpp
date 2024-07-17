@@ -20,7 +20,6 @@ static int error_exit(const char *message)
 
 // TODO
 //
-// PRIVMSG
 // WHOIS
 // WHO replies may be weird
 // implement MODE klo
@@ -28,6 +27,9 @@ static int error_exit(const char *message)
 // KICK
 // PART
 // QUIT
+// PING PONG
+// ctrl + C
+
 
 int main(int ac, char** av)
 {

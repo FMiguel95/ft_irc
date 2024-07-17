@@ -23,15 +23,38 @@ void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 		// reply ERR_NOTEXTTOSEND
 		return;
 	}
-
 	// se enviar para um canal
-	// se nao existir reply ERR_CANNOTSENDTOCHAN
-	// se o user estiver banido, não fazer nada
-
-
+	if (message->arguments[0][0] == '#' || message->arguments[0][0] == '&')
+	{
+		Channel* channel = getChannelByName(message->arguments[0]);
+		if (channel)
+		{
+			std::map<Client*,char>::const_iterator userInChannel = channel->getClientInChannel(client.nick);
+			if (userInChannel != channel->userList.end())
+			{
+				// enviar mensagem para todos no canal
+				for (std::map<Client*,char>::iterator i = channel->userList.begin(); i != channel->userList.end(); ++i)
+				{
+					if (i->first->nick != client.nick)
+						sendMessage(i->first->socket, std::string(":") + client.nick + "!" + client.userAtHost + " PRIVMSG " + channel->channelName + " :" + message->arguments[1] + "\r\n");
+				}
+				return;
+			}
+		}
+		// reply ERR_CANNOTSENDTOCHAN
+		return;
+	}
 	// se enviar para outro user
-	// se o nick nao existir reply ERR_NOSUCHNICK
-
-	// para enviar a mensagem, é so fazer relay do message->arguments[1] para cada recipient
-
+	else
+	{
+		Client* recipient = getClientByNick(message->arguments[0]);
+		if (!recipient)
+		{
+			// reply ERR_NOSUCHNICK
+			return;
+		}
+		// enviar mensagem para o user
+		sendMessage(recipient->socket, std::string(":") + client.nick + " PRIVMSG " + recipient->nick + " :" + message->arguments[1] + "\r\n");
+		return;
+	}
 }
