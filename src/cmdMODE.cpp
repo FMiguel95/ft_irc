@@ -47,7 +47,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 			return;
 		}
 		// ver se o user tem permissao para alterar os modos do canal
-		std::map<Client*,char>::const_iterator i = channel->getClientInChannel(client.nick);
+		std::map<Client*,char>::iterator i = channel->getClientInChannel(client.nick);
 		if (i == channel->userList.end() || (i->second & MODE_o) == 0)
 		{
 			// reply ERR_CHANOPRIVSNEEDED

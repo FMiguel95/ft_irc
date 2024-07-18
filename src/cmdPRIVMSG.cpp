@@ -29,7 +29,7 @@ void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 		Channel* channel = getChannelByName(message->arguments[0]);
 		if (channel)
 		{
-			std::map<Client*,char>::const_iterator userInChannel = channel->getClientInChannel(client.nick);
+			std::map<Client*,char>::iterator userInChannel = channel->getClientInChannel(client.nick);
 			if (userInChannel != channel->userList.end())
 			{
 				// enviar mensagem para todos no canal

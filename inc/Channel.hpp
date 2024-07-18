@@ -35,7 +35,7 @@ public:
 	~Channel();
 	Channel& operator =(const Channel& src);
 
-	std::map<Client*,char>::const_iterator getClientInChannel(const std::string& nick) const;
+	std::map<Client*,char>::iterator getClientInChannel(const std::string& nick);
 
 private:
 	Channel();

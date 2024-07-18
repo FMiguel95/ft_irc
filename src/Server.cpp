@@ -116,10 +116,7 @@ int Server::run()
 					if (bytesRead == 0)
 						std::cout << "\001\e[0;31m" << "Client disconnected\n" << "\e[0m\002";
 					else
-					{
-						std::cout << bytesRead << std::endl;
 						error_exit("Error receiving data from client");
-					}
 					close(fds[i].fd);
 					fds.erase(fds.begin() + i);
 					clients.erase(fds[i].fd);
@@ -239,6 +236,8 @@ void Server::handleMessage(const int& socket, t_message* message)
 		cmdUSER(socket, message);
 	else if (message->command == "JOIN")
 		cmdJOIN(socket, message);
+	else if (message->command == "PART")
+		cmdPART(socket, message);
 	else if (message->command == "PRIVMSG")
 		cmdPRIVMSG(socket, message);
 	else if (message->command == "MODE")
@@ -255,15 +254,17 @@ void Server::handleMessage(const int& socket, t_message* message)
 		cmdWHO(socket, message);
 	else if (message->command == "WHOIS")
 		cmdWHOIS(socket, message);
+	else if (message->command == "QUIT")
+		cmdQUIT(socket, message);
 	else if (message->command == "CAP")
 		return;
 	else // reply ERR_UNKNOWNCOMMAND
 		sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
 }
 
-Channel* Server::getChannelByName(const std::string& name) const
+Channel* Server::getChannelByName(const std::string& name)
 {
-	for (std::list<Channel>::const_iterator i = channels.begin(); i != channels.end(); ++i)
+	for (std::list<Channel>::iterator i = channels.begin(); i != channels.end(); ++i)
 	{
 		if (i->channelName == name)
 			return (Channel*)&*i;
@@ -271,9 +272,9 @@ Channel* Server::getChannelByName(const std::string& name) const
 	return NULL;
 }
 
-Client* Server::getClientByNick(const std::string& nick) const
+Client* Server::getClientByNick(const std::string& nick)
 {
-	for (std::map<int, Client>::const_iterator i = clients.begin(); i != clients.end(); ++i)
+	for (std::map<int, Client>::iterator i = clients.begin(); i != clients.end(); ++i)
 	{
 		if (i->second.nick == nick)
 			return (Client*)&i->second;

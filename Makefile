@@ -9,13 +9,15 @@ SRC_LIST = main1.cpp \
 			cmdUSER.cpp \
 			cmdLIST.cpp \
 			cmdJOIN.cpp \
+			cmdPART.cpp \
+			cmdPRIVMSG.cpp \
 			cmdTOPIC.cpp \
 			cmdWHO.cpp \
 			cmdWHOIS.cpp \
 			cmdMODE.cpp \
 			cmdKICK.cpp \
 			cmdINVITE.cpp \
-			cmdPRIVMSG.cpp
+			cmdQUIT.cpp
 
 SRC_DIR = src/
 SRC = $(addprefix $(SRC_DIR), $(SRC_LIST))

@@ -26,7 +26,7 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 		return;
 	}
 
-	std::map<Client*,char>::const_iterator userInChannel = channel->getClientInChannel(client.nick);
+	std::map<Client*,char>::iterator userInChannel = channel->getClientInChannel(client.nick);
 	// validar que o user está no canal
 	if (userInChannel == channel->userList.end())
 	{

@@ -98,9 +98,9 @@ private:
 	// decide o que fazer com a mensagem resultante
 	void handleMessage(const int& socket, t_message* message);
 
-	Channel* getChannelByName(const std::string& name) const;
+	Channel* getChannelByName(const std::string& name);
 
-	Client* getClientByNick(const std::string& nick) const;
+	Client* getClientByNick(const std::string& nick);
 
 	// closes connection to a specific socket
 	// sends appropriate message and removes client from the list, etc..
@@ -184,4 +184,13 @@ private:
 	// Parameters: <server> [ <server2> ]
 	void cmdPONG(const int& socket, const t_message* message);
 
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.2
+	// Command: PART
+	// Parameters: <channel> *( "," <channel> ) [ <Part Message> ]
+	void cmdPART(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.7
+	// Command: QUIT
+	// Parameters: [ <Quit Message> ]
+	void cmdQUIT(const int& socket, const t_message* message);
 };
