@@ -35,9 +35,15 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 	}
 
 	// se nao tiver segundo argumento apenas enviar o topico do canal
-	if (message->arguments[1].empty())
+	std::cout << "message->arguments[1]: " << message->arguments[1] << std::endl;
+	if (message->arguments[1].empty() && message->raw[message->raw.length() - 1] != ':')
 	{
+		//std::cout << "empty topic:" << message->raw[message->raw.length() - 1] << std::endl;
 		// reply RPL_TOPIC ou RPL_NOTOPIC se não existir
+		if (channel->topic.empty())
+			sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_NOTOPIC + " " + client.nick + " " + channel->channelName + " :No topic is set\r\n");
+		else
+			sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_TOPIC + " " + client.nick + " " + channel->channelName + " :" + channel->topic + "\r\n");
 		return;
 	}
 
@@ -49,9 +55,10 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 	}
 
 	// tudo OK, reply RPL_TOPIC ou RPL_NOTOPIC para todos os users no canal
+	//std::cout << "change topic\n";
 	channel->topic = message->arguments[1];
-	for (std::map<Client*,char>::iterator i = channel->userList.begin(); i != channel->userList.end(); ++i)
-	{
-		// reply RPL_TOPIC ou RPL_NOTOPIC
-	}
+	if (channel->topic.empty())
+		broadcastMessage(*channel, std::string(":") + client.nick + "!" + client.userAtHost + " TOPIC " + channel->channelName + " :\r\n");
+	else
+		broadcastMessage(*channel, std::string(":") + client.nick + "!" + client.userAtHost + " TOPIC " + channel->channelName + " :" + channel->topic + "\r\n");
 }

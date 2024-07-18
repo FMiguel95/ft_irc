@@ -5,6 +5,7 @@
 // Parameters: <password>
 void Server::cmdPASS(const int& socket, const t_message* message)
 {
+	std::cout << "clients.size(): " << clients.size() << std::endl;
 	Client& client = clients.at(socket);
 	
 	// se ja estiver registado
@@ -39,3 +40,4 @@ void Server::cmdPASS(const int& socket, const t_message* message)
 	}
 	// add password to the class?
 }
+

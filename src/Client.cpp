@@ -25,6 +25,7 @@ userOk(src.userOk),
 nick(src.nick),
 user(src.user),
 userAtHost(src.userAtHost),
+realname(src.realname),
 hostname(src.hostname),
 _lastActivityTime(src._lastActivityTime)
 {}

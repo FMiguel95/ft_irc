@@ -21,26 +21,39 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 	int index = 0;
 
 	// validar se o target existe
+	Client *target = getClientByNick(message->arguments[0]);
 	if (!message->arguments[1].empty())
 	{
 		// if the target is not a nick, it's a server -> reply ERR_NOSUCHSERVER
-		if (getClientByNick(message->arguments[0]) == NULL)
+		if (target == NULL)
 		{
 			// not sure how it should behave look at this later
 			// reply ERR_NOSUCHSERVER 
 			return;
 		}
 		else
-			index = 1;
+			target = getClientByNick(message->arguments[1]);
 	}
-
-	// validate that the nick (<mask>) exists -> reply ERR_NOSUCHNICK
-	if (getClientByNick(message->arguments[index]) == NULL)
+	if (target == NULL)
 	{
 		// reply ERR_NOSUCHNICK
 		return;
+	
 	}
-
-	// if its successful reply RPL_WHOISUSER, RPL_WHOISSERVER, RPL_ENDOFWHOIS
-	// reply ERR_ENDOFWHOIS
+	// if its successful 
+	// RPL_WHOISUSER
+	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISUSER + " " + client.nick + " " + target->nick + " " + target->user + " " + target->hostname + " * :" + target->realname + "\r\n");
+	std::cout << target->realname << std::endl;
+	// RPL_WHOISSERVER
+	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISSERVER + " " + client.nick + " " + target->nick + " " + SERVER_NAME + " :A very cool server\r\n");
+	// RPL_WHOISIDLE
+	//sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISIDLE + " " + client.nick + " " + target->nick + " " + target->getTimeSinceLastActivity() + " 0 :seconds idle, signon time\r\n");
+	// RPL_WHOISCHANNELS
+	// RPL_WHOISACTUALLY
+	// RPL_AWAY - later
+	// RPL_WHOISHOST
+	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISHOST + " " + client.nick + " " + target->nick + " :is connecting from " + target->userAtHost + "\r\n");
+	// reply RPL_ENDOFWHOIS
+	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_ENDOFWHOIS + " " + client.nick + " " + target->nick + " :End of WHOIS list\r\n");
 }
+

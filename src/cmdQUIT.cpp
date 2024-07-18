@@ -22,5 +22,6 @@ void Server::cmdQUIT(const int& socket, const t_message* message)
 		// notificar outros users da saida
 		broadcastMessage(*i, std::string(":") + client.nick + "!" + client.userAtHost + " QUIT :Client Quit\r\n");
 	}
+	//clients.erase(socket);
 	sendMessage(socket, std::string(":") + SERVER_NAME + " ERROR :Closing link\r\n");
 }

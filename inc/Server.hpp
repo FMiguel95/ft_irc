@@ -26,7 +26,13 @@
 #define RPL_MYINFO				"004"
 #define RPL_ISUPPORT			"005"
 #define RPL_UMODEIS				"221"
+#define RPL_WHOISUSER			"311"
+#define RPL_WHOISSERVER			"312"
+#define RPL_WHOISOPERATOR		"313"
 #define RPL_ENDOFWHO			"315"
+#define RPL_WHOISIDLE			"317"
+#define RPL_ENDOFWHOIS			"318"
+#define RPL_WHOISCHANNELS		"319"
 #define RPL_LISTSTART			"321"
 #define RPL_LIST				"322"
 #define RPL_LISTEND				"323"
@@ -37,6 +43,7 @@
 #define RPL_WHOREPLY			"352"
 #define RPL_NAMREPLY			"353"
 #define RPL_ENDOFNAMES			"366"
+#define RPL_WHOISHOST			"378"
 
 #define ERR_NOSUCHNICK			"401"
 #define ERR_NOSUCHCHANNEL		"403"
@@ -59,6 +66,7 @@
 // mensagens em irc são compostas por prefixo(opcional), comando, e argumentos (até 15)
 // todos separados por um space character
 typedef struct {
+	std::string raw;
 	std::string prefix;
 	std::string command;
 	std::string arguments[15];

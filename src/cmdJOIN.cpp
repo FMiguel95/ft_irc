@@ -11,6 +11,11 @@ void Server::addClientToChannel(Client& client, Channel& channel)
 	// 	sendMessage(i->first->socket, std::string(":") + client.nick + "!" + client.userAtHost + " JOIN " + channel.channelName + "\r\n");
 	broadcastMessage(channel, std::string(":") + client.nick + "!" + client.userAtHost + " JOIN " + channel.channelName + "\r\n");
 	// enviar o topico reply RPL_TOPIC ou RPL_NOTOPIC
+	// verificar se existe um topico
+	if (channel.topic.empty())
+		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_NOTOPIC + " " + client.nick + " " + channel.channelName + " :No topic is set\r\n");
+	else
+		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_TOPIC + " " + client.nick + " " + channel.channelName + " :" + channel.topic + "\r\n");
 	// talvez enviar tambem RPL_TOPICWHOTIME
 	// enviar a lista de nomes -> reply RPL_NAMREPLY e RPL_ENDOFNAMES
 	std::string message = std::string(":") + SERVER_NAME " " + RPL_NAMREPLY + " " + client.nick + " = " + channel.channelName + " :";

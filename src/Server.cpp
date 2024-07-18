@@ -113,14 +113,15 @@ int Server::run()
 				int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 				if (bytesRead <= 0)
 				{
-					if (bytesRead == 0)
-						std::cout << "\001\e[0;31m" << "Client disconnected\n" << "\e[0m\002";
-					else
-						error_exit("Error receiving data from client");
+					std::cout << "\001\e[0;31m" << "Client disconnected\n" << "\e[0m\002";
+					// else
+					// 	error_exit("Error receiving data from client");
 					close(fds[i].fd);
 					fds.erase(fds.begin() + i);
 					clients.erase(fds[i].fd);
 					i--;
+					// size of the clients list:
+					std::cout << "clients.size(): " << clients.size() << std::endl;
 					continue;
 				}
 				std::string clientMessage = std::string(buffer, 0, bytesRead);
@@ -186,6 +187,7 @@ t_message* Server::parseMessage(std::string& stream)
 	split.push_back(stream.substr(start));
 
 	// initialize struct
+	message.raw = stream;
 	message.prefix.clear();
 	message.command.clear();
 	for (size_t i = 0; i < 15; i++)
