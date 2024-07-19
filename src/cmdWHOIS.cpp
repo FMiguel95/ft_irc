@@ -15,6 +15,7 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NONICKNAMEGIVEN
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NONICKNAMEGIVEN + " " + client.nick + " :No nickname given\r\n");
 		return;
 	}
 
@@ -29,6 +30,7 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 		{
 			// not sure how it should behave look at this later
 			// reply ERR_NOSUCHSERVER 
+			//sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOSUCHSERVER + " " + client.nick + " " + message->arguments[1] + " :No such server\r\n");
 			return;
 		}
 		else
@@ -37,6 +39,7 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 	if (target == NULL)
 	{
 		// reply ERR_NOSUCHNICK
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
 		return;
 	
 	}

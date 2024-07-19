@@ -14,6 +14,7 @@ void Server::cmdPART(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " PART :Not enough parameters\r\n");
 		return;
 	}
 
@@ -36,6 +37,7 @@ void Server::cmdPART(const int& socket, const t_message* message)
 		if (!channel)
 		{
 			// reply ERR_NOSUCHCHANNEL
+			sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + *i + " :No such channel\r\n");
 			continue;
 		}
 		// validate the client is in the channel
@@ -43,6 +45,7 @@ void Server::cmdPART(const int& socket, const t_message* message)
 		if (clientInChannel == channel->userList.end())
 		{
 			// reply ERR_NOTONCHANNEL
+			sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + *i + " :You're not on that channel\r\n");
 			continue;
 		}
 		sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " PART " + channel->channelName + " :" + message->arguments[1] + "\r\n");

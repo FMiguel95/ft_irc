@@ -11,13 +11,15 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 	if (client.isRegistered)
 	{
 		// reply ERR_ALREADYREGISTRED
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_ALREADYREGISTRED + " " + client.nick + " :You may not reregister\r\n");
 		return;
 	}
 
 	// validar que password é necessaria e enviou a pass correta
 	if (!serverPassword.empty() && client.passOk == false)
 	{
-		// reply ERR_PASSWDMISMATCH ??? see what to do 
+		// reply ERR_PASSWDMISMATCH ??? see what to do
+		//sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_PASSWDMISMATCH + " " + client.nick + " :Password incorrect\r\n"); 
 		return;
 	}
 
@@ -26,6 +28,7 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		|| message->arguments[2].empty() || message->arguments[3].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
+		sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_NEEDMOREPARAMS + " " + client.nick + " USER :Not enough parameters\r\n");
 		return;
 	}
 

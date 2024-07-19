@@ -46,6 +46,7 @@ void Server::attempJoin(Client& client, const std::string& channelName, const st
 	if (Server::isChannelNameValid(channelName) == false)
 	{
 		// reply ERR_NOSUCHCHANNEL
+		sendMessage(client.socket, std::string(":") + SERVER_NAME + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + channelName + " :No such channel\r\n");
 		return;
 	}
 	Channel* channel = NULL;
@@ -60,12 +61,14 @@ void Server::attempJoin(Client& client, const std::string& channelName, const st
 			if (channel->channelMode & MODE_l && channel->userList.size() >= channel->userLimit)
 			{
 				// reply ERR_CHANNELISFULL
+				sendMessage(client.socket, std::string(":") + SERVER_NAME + " " + ERR_CHANNELISFULL + " " + client.nick + " " + channelName + " :Cannot join channel (+l)\r\n");
 				continue;
 			}
 			// validar se esta protegido por password e a key é correta
 			if (channel->channelMode & MODE_k && channel->channelKey != providedKey)
 			{
 				// reply ERR_BADCHANNELKEY
+				sendMessage(client.socket, std::string(":") + SERVER_NAME + " " + ERR_BADCHANNELKEY + " " + client.nick + " " + channelName + " :Cannot join channel (+k)\r\n");
 				continue;
 			}
 			// validar se é invite only e o user nao foi convidado
@@ -73,6 +76,7 @@ void Server::attempJoin(Client& client, const std::string& channelName, const st
 				&& std::find(channel->invitedUsers.begin(), channel->invitedUsers.end(), &client) == channel->invitedUsers.end())
 			{
 				// reply ERR_INVITEONLYCHAN
+				sendMessage(client.socket, std::string(":") + SERVER_NAME + " " + ERR_INVITEONLYCHAN + " " + client.nick + " " + channelName + " :Cannot join channel (+i)\r\n");
 				continue;
 			}
 			// adicionar o user ao canal
@@ -107,6 +111,7 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " JOIN :Not enough parameters\r\n");
 		return;
 	}
 

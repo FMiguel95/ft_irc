@@ -114,6 +114,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		if (!user)
 		{
 			// reply ERR_NOSUCHNICK
+			sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
 			return;
 		}
 		// se nao tem mais parametros, reply RPL_UMODEIS

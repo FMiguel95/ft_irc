@@ -15,6 +15,7 @@ void Server::cmdINVITE(const int& socket, const t_message* message)
 	if (message->arguments[0].empty() || message->arguments[1].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " INVITE :Not enough parameters\r\n");
 		return;
 	}
 
@@ -28,6 +29,7 @@ void Server::cmdINVITE(const int& socket, const t_message* message)
 	if (it1 == clients.end())
 	{
 		// reply ERR_NOSUCHNICK
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
 		return;
 	}
 
@@ -47,6 +49,7 @@ void Server::cmdINVITE(const int& socket, const t_message* message)
 			if (it3 == it2->userList.end())
 			{
 				// reply ERR_NOTONCHANNEL
+				sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + message->arguments[1] + " :You're not on that channel\r\n");
 				return;
 			}
 			// se o canal for invite only, validar que o user é operator reply ERR_CHANOPRIVSNEEDED
@@ -55,6 +58,7 @@ void Server::cmdINVITE(const int& socket, const t_message* message)
 				if (!(it3->second & MODE_o))
 				{
 					// reply ERR_CHANOPRIVSNEEDED
+					sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + message->arguments[1] + " :You're not channel operator\r\n");
 					return;
 				}
 			}
@@ -65,6 +69,7 @@ void Server::cmdINVITE(const int& socket, const t_message* message)
 				if (it4->first->nick == message->arguments[0])
 				{
 					// reply ERR_USERONCHANNEL
+					sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_USERONCHANNEL + " " + client.nick + " " + message->arguments[0] + " " + message->arguments[1] + " :is already on channel\r\n");
 					return;
 				}
 			}
@@ -72,6 +77,7 @@ void Server::cmdINVITE(const int& socket, const t_message* message)
 		}
 	}
 	// se OK reply RPL_INVITING
+	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_INVITING + " " + client.nick + " " + message->arguments[0] + " " + message->arguments[1] + "\r\n");
 
 	// adicionar o user à lista de convidados
 	it2->invitedUsers.push_back(&it1->second);
