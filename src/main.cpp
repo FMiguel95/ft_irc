@@ -1,157 +1,162 @@
 #include <iostream>
-#include <vector>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <cstring>
-#include <poll.h>
 #include <csignal>
+#include "../inc/Server.hpp"
 
-const int MAX_CLIENTS = 10;
-const int BUFFER_SIZE = 1024;
-const int PORT = 6667;
-bool run = true;
+// static int error_exit(const char *message)
+// {
+// 	std::cerr << message << '\n';
+// 	return 1;
+// }
 
-void	handle_sigint(int signal)
+// TODO
+//
+// WHOIS
+// WHO replies may be weird
+// implement MODE klo
+// error replies all around
+// KICK
+// PING PONG
+
+static void handle_sigint(int signal)
 {
 	if (signal == SIGINT)
-	{
-		std::cout << std::endl;
-		run = false;
-	}
+		Server::run = false;
 }
-
-// modern.ircdocs.horse
-// datatracker.ietf.org/doc/html/rfc2812
-// ircv3.net
-
 
 int main(int ac, char** av)
 {
-	int serverSocket, clientSocket;
-	struct sockaddr_in serverAddr, clientAddr;
-	socklen_t addrLen = sizeof(struct sockaddr_in);
-	char buffer[BUFFER_SIZE];
+	if (ac != 3)
+	{
+		std::cerr << "Usage: ./ircserv <port> <password>" << std::endl;
+		return 1;
+	}
 
-	// Create socket
+	std::string portString = av[1];
+	long long port = std::atoll(portString.c_str());
+	if (port < 0 || port > 0xFFFF ||
+		portString.empty() || portString.find_first_not_of("0123456789") != std::string::npos)
+	{
+		std::cerr << "Invalid port" << std::endl;
+		return 1;
+	}
+	std::string password = av[2];
+
+	std::signal(SIGINT, handle_sigint);
+	Server server(port, password);
+	return server.runServer();
+
+	/////////////////////////////////////////
+	/*
+	int				serverSocket, clientSocket, opt;
+	sockaddr_in		serverAddress, clientAddress;
+	socklen_t		clientAddressSize = sizeof(clientAddress);
+	
+	char			buffer[BUFFER_SIZE];
+
+	// CREATE A SOCKET ---------------------------------------------------------
+	
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket == -1)
-	{
-		std::cerr << "Error creating socket\n";
-		return 1;
-	}
+		return (error_exit("Error creating socket"));
+	opt = 1;
+	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+		return (error_exit("Error setting socket options"));
 
-	// Set socket options to allow reuse of the address
-	int opt = 1;
-	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-	{
-		std::cerr << "Error setting socket options\n";
-		return 1;
-	}
+	// BIND SOCKET TO PORT -----------------------------------------------------
 
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_addr.s_addr = INADDR_ANY;
+	serverAddress.sin_port = htons(PORT);
 
-	// Set up server address
-	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_addr.s_addr = INADDR_ANY;
-	serverAddr.sin_port = htons(PORT);
+	if (bind(serverSocket, (sockaddr*)&serverAddress, sizeof(serverAddress)) == -1)
+		return (error_exit("Error binding socket to port"));
 
-	// Bind socket
-	if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
-	{
-		std::cerr << "Error binding socket\n";
-		return 1;
-	}
+	// LISTEN FOR CONNECTIONS --------------------------------------------------
 
-	// Listen for incoming connections
-	if (listen(serverSocket, MAX_CLIENTS) < 0)
-	{
-		std::cerr << "Error listening on socket\n";
-		return 1;
-	}
+	if (listen(serverSocket, SOMAXCONN) == -1)
+		return (error_exit("Error listening for connections"));
+	std::cout << "Server listening on port " << PORT << '\n';
 
-	std::cout << "Server listening on port " << PORT << std::endl;
-
-	struct pollfd fds[MAX_CLIENTS + 1];
-	std::memset(fds, 0, sizeof(fds));
-
-	fds[0].fd = serverSocket;
-	fds[0].events = POLLIN;
-
-	int numClients = 0;
-
+	// CLIENT CONNECTION -------------------------------------------------------
+	
+	std::vector<pollfd>	fds;
+	std::vector<int>	clientSockets;
+	
+	pollfd pfd;
+	pfd.fd = serverSocket;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+	fds.push_back(pfd);
 	std::signal(SIGINT, handle_sigint);
 	while (run)
 	{
-		// Wait for activity on any of the sockets
-		int activity = poll(fds, numClients + 1, -1);
-		if (!run)
-			break;
-		if (activity < 0)
+		int pollResult = poll(fds.data(), fds.size(), -1);
+		if (!run || pollResult == -1)
 		{
-			std::cerr << "Poll error\n";
+			if (pollResult == -1)
+				error_exit("Error polling sockets");
 			break;
 		}
-
-		// If there's a new connection request
 		if (fds[0].revents & POLLIN)
 		{
-			// Accept the connection
-			clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
-			if (clientSocket < 0)
+			clientSocket = accept(serverSocket, (sockaddr*)&clientAddress, &clientAddressSize);
+			//std::cout << clientSocket << std::endl;
+			if (clientSocket == -1)
 			{
-				std::cerr << "Error accepting connection\n";
+				error_exit("Error accepting connection");
 				continue;
 			}
-
-			// Add the new client to the array of sockets
-			numClients++;
-			fds[numClients].fd = clientSocket;
-			fds[numClients].events = POLLIN;
-
-			std::cout << "New connection from " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << std::endl;
+			else
+			{
+				pfd.fd = clientSocket;
+				pfd.events = POLLIN | POLLHUP | POLLERR;
+				pfd.revents = 0;
+				fds.push_back(pfd);
+				clientSockets.push_back(clientSocket);
+				std::cout << "New client connected: " << inet_ntoa(clientAddress.sin_addr) << ':' << ntohs(clientAddress.sin_port) << '\n';
+			}
 		}
-
-		// Check for messages from clients
-		for (int i = 1; i <= numClients; i++)
+		for (size_t i = 1; i < fds.size(); i++)
 		{
 			if (fds[i].revents & POLLIN)
 			{
-				// Read the message
-				int bytesRead = read(fds[i].fd, buffer, BUFFER_SIZE - 1);
+				clientSocket = fds[i].fd;
+				int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 				if (bytesRead <= 0)
 				{
-					// Connection closed or error
-					close(fds[i].fd);
-					// Remove from the poll list
-					fds[i] = fds[numClients];
-					numClients--;
+					if (bytesRead == 0)
+						std::cout << "Client disconnected\n";
+					else
+					{
+						std::cout << bytesRead << std::endl;
+						error_exit("Error receiving data from client");
+					}
+					close(clientSocket);
+					fds.erase(fds.begin() + i);
+					clientSockets.erase(std::remove(clientSockets.begin(), clientSockets.end(), clientSocket), clientSockets.end());
+					i--;
 				}
 				else
 				{
-					// Process the message
-					buffer[bytesRead] = '\0'; // Null-terminate the string
-					std::string clientMessage = buffer;
-					std::cout << "Received message from client " << i << ">\n" << clientMessage << std::endl;
-					
+					std::string clientMessage = std::string(buffer, 0, bytesRead);
+					std::cout << "Received from client: " << clientMessage << "\n";
 
 					std::string reply;
 					if (clientMessage == "CAP LS 302\r\n")
 						reply = ":verycoolserver CAP * LS :\r\n";
 					else
-						reply = "Hi!\r\n";
+						reply = "hi!\r\n";
 					send(fds[i].fd, reply.c_str(), reply.length(), 0);
-					std::cout << "Replied with >\n" << reply << std::endl;
+					std::cout << "Replied with > " << reply << "\n";
 				}
 			}
 		}
 	}
 
-	// Close server socket
-	if (close(serverSocket) < 0)
-	{
-		std::cerr << "Close error" << std::endl;
-	}
-	std::cout << "quitting" << std::endl;
-	return 0;
+	// CLOSE CONNECTION --------------------------------------------------------
+
+	if (close(serverSocket) == -1)
+		return (error_exit("Error closing server socket"));
+	std::cout << "Server socket closed\n";
+	*/
 }

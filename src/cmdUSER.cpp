@@ -5,7 +5,6 @@
 // Parameters: <user> <mode> <unused> <realname>
 void Server::cmdUSER(const int& socket, const t_message* message)
 {
-	std::cout << "user: clients.size(): " << clients.size() << std::endl;
 	Client& client = clients.at(socket);
 	
 	// validar que ainda nao fez registo
@@ -14,14 +13,14 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		// reply ERR_ALREADYREGISTRED
 		return;
 	}
-	std::cout << "1" << std::endl;
+
 	// validar que password é necessaria e enviou a pass correta
 	if (!serverPassword.empty() && client.passOk == false)
 	{
 		// reply ERR_PASSWDMISMATCH ??? see what to do 
 		return;
 	}
-	std::cout << "2" << std::endl;
+
 	// validar que tem os argumentos todos -> ERR_NEEDMOREPARAMS -> DONE
 	if (message->arguments[0].empty() || message->arguments[1].empty() 
 		|| message->arguments[2].empty() || message->arguments[3].empty())
@@ -29,14 +28,13 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		// reply ERR_NEEDMOREPARAMS
 		return;
 	}
-	std::cout << "3" << std::endl;
+
 	// add user to the client and log the client in
 	client.user = std::string("~") + message->arguments[0];
 	client.userAtHost = client.user + "@" + client.hostname;
 	client.realname = message->arguments[3];
 	client.userOk = true;
 
-	std::cout << "4" << std::endl;
 	// se a pass nick e user do client estiverem OK permitir login no servidor
 	if (!client.isRegistered && (serverPassword.empty() || client.passOk) && client.nickOk && client.userOk)
 	{
@@ -47,5 +45,4 @@ void Server::cmdUSER(const int& socket, const t_message* message)
 		sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_MYINFO + " " + client.nick + " localhost v0.1 o iklt\r\n"); // ?
 		// sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ISUPPORT + " " + client.nick + " ? ?? ??? :are supported by this server\r\n"); // ?
 	}
-	std::cout << "5" << std::endl;
 }

@@ -6,19 +6,23 @@ static int error_exit(const char *message)
 	return 1;
 }
 
-Server::Server() : serverPort(6667), serverPassword(""), serverCreationTime(std::time(NULL)) {}
+bool Server::run = false;
+
+Server::Server() : serverPort(6667), serverPassword(""), serverCreationTime(std::time(NULL))/*, run(true)*/ {}
 
 Server::Server(const int& serverPort, const std::string& serverPassword) : 
 											serverPort(serverPort),
 											serverPassword(serverPassword),
-											serverCreationTime(std::time(NULL)) {}
+											serverCreationTime(std::time(NULL))/*,
+											run(true)*/ {}
 
 Server::Server(const Server& src) :
 							serverPort(src.serverPort),
 							serverPassword(src.serverPassword),
 							clients(src.clients),
 							channels(src.channels),
-							serverCreationTime(src.serverCreationTime) {}
+							serverCreationTime(src.serverCreationTime)/*,
+							run(src.run)*/ {}
 
 Server::~Server() {}
 
@@ -31,11 +35,12 @@ Server& Server::operator = (const Server& src)
 		clients = src.clients;
 		channels = src.channels;
 		serverCreationTime = src.serverCreationTime;
+		//run = src.run;
 	}
 	return *this;
 }
 
-int Server::run()
+int Server::runServer()
 {
 	// CREATE A SOCKET ---------------------------------------------------------
 
@@ -72,11 +77,14 @@ int Server::run()
 	pfd.revents = 0;
 	fds.push_back(pfd);
 
-	while (1)
+	run = true;
+	while (run)
 	{
 		int pollResult = poll(fds.data(), fds.size(), 100);
 		if (pollResult == -1)
 		{
+			if (errno == EINTR)
+				continue;
 			error_exit("Error polling sockets");
 			break;
 		}
@@ -113,15 +121,13 @@ int Server::run()
 				int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 				if (bytesRead <= 0)
 				{
-					std::cout << "\001\e[0;31m" << "Client disconnected\n" << "\e[0m\002";
+					std::cout << "\001\e[0;31m" << "Client " << fds[i].fd << " disconnected\n" << "\e[0m\002";
 					// else
 					// 	error_exit("Error receiving data from client");
+					clients.erase(fds[i].fd);
 					close(fds[i].fd);
 					fds.erase(fds.begin() + i);
-					clients.erase(fds[i].fd);
 					i--;
-					// size of the clients list:
-					std::cout << "clients.size(): " << clients.size() << std::endl;
 					continue;
 				}
 				std::string clientMessage = std::string(buffer, 0, bytesRead);
@@ -151,23 +157,27 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	Client& client = clients.at(socket);
 	client.updateActivityTime();
 	client.messageBuffer += stream;
-	while (client.messageBuffer.find("\r\n") != std::string::npos)
+	size_t pos;
+	while ((pos = client.messageBuffer.find_first_of("\r\n")) != std::string::npos)
 	{
-		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\r\n"));
-		client.messageBuffer.erase(0, client.messageBuffer.find("\r\n") + 2);
+		std::string message = client.messageBuffer.substr(0, pos);
+		if (client.messageBuffer[pos] == '\r' && pos + 1 < client.messageBuffer.size() && client.messageBuffer[pos + 1] == '\n')
+			client.messageBuffer.erase(0, pos + 2);
+		else
+			client.messageBuffer.erase(0, pos + 1);
 		std::cout << "\001\e[0;92m" << "Received from socket " << socket << ": " << "\e[0m\002" << message << std::endl;
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
-	// version coppied from above harcodeded to be used with nc
-	while (client.messageBuffer.find("\n") != std::string::npos)
-	{
-		std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\n"));
-		client.messageBuffer.erase(0, client.messageBuffer.find("\n") + 1);
-		std::cout << "\001\e[0;92m" << "Received from socket " << socket << ": " << "\e[0m\002" << message << std::endl;
-		if (parseMessage(message))
-			handleMessage(socket, &this->message);
-	}
+	// // version coppied from above harcodeded to be used with nc
+	// while (client.messageBuffer.find("\n") != std::string::npos)
+	// {
+	// 	std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\n"));
+	// 	client.messageBuffer.erase(0, client.messageBuffer.find("\n") + 1);
+	// 	std::cout << "\001\e[0;92m" << "Received from socket " << socket << ": " << "\e[0m\002" << message << std::endl;
+	// 	if (parseMessage(message))
+	// 		handleMessage(socket, &this->message);
+	// }
 	//std::cout << "buffer:" << client.messageBuffer << std::endl;
 }
 

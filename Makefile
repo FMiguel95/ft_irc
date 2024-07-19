@@ -1,6 +1,6 @@
 NAME = ircserv
 
-SRC_LIST = main1.cpp \
+SRC_LIST = main.cpp \
 			Server.cpp \
 			Client.cpp \
 			Channel.cpp \

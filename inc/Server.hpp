@@ -8,7 +8,7 @@
 #include <cctype>
 #include <ctime>
 #include <sstream>
-#include <csignal>
+#include <cerrno>
 #include <cstring>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -17,6 +17,7 @@
 #include <poll.h>
 #include "Client.hpp"
 #include "Channel.hpp"
+
 
 #define SERVER_NAME				"localhost"
 
@@ -75,13 +76,15 @@ typedef struct {
 class Server
 {
 public:
+	static bool run;
+
 	Server();
 	Server(const int& serverPort, const std::string& serverPassword);
 	Server(const Server& src);
 	~Server();
 	Server& operator =(const Server& src);
 
-	int run(); // will be called in main
+	int runServer(); // will be called in main
 
 private:
 	time_t serverCreationTime;
@@ -91,7 +94,10 @@ private:
 	std::list<Channel> channels;	// list of channels
 	t_message message;
 
+	void handle_sigint(int signal);
+
 	void sendMessage(const int& socket, const std::string& message);
+
 	void broadcastMessage(Channel& channel, const std::string& message);
 
 	// recebe uma mensagem de um client e adiciona ao buffer - adicionar à lista de clients se ainda não existir?

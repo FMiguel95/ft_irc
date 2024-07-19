@@ -23,5 +23,6 @@ void Server::cmdQUIT(const int& socket, const t_message* message)
 		broadcastMessage(*i, std::string(":") + client.nick + "!" + client.userAtHost + " QUIT :Client Quit\r\n");
 	}
 	//clients.erase(socket);
+	client.isRegistered = false;
 	sendMessage(socket, std::string(":") + SERVER_NAME + " ERROR :Closing link\r\n");
 }

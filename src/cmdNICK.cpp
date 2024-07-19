@@ -16,7 +16,7 @@ static bool isNickinUse(const std::string& nick, std::map<int,Client>& clients)
 {
 	for (std::map<int,Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		if (it->second.getUserInfo('n') == nick)
+		if (it->second.isRegistered && it->second.getUserInfo('n') == nick)
 			return (true);
 	}
 	return (false);
