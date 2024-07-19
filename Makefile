@@ -17,6 +17,7 @@ SRC_LIST = main.cpp \
 			cmdMODE.cpp \
 			cmdKICK.cpp \
 			cmdINVITE.cpp \
+			cmdPING.cpp \
 			cmdQUIT.cpp
 
 SRC_DIR = src/
