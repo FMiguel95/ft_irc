@@ -35,7 +35,6 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 	}
 
 	// se nao tiver segundo argumento apenas enviar o topico do canal
-	std::cout << "message->arguments[1]: " << message->arguments[1] << std::endl;
 	if (message->arguments[1].empty() && message->raw[message->raw.length() - 1] != ':')
 	{
 		//std::cout << "empty topic:" << message->raw[message->raw.length() - 1] << std::endl;

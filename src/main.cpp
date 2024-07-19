@@ -10,12 +10,11 @@
 
 // TODO
 //
-// WHOIS
-// WHO replies may be weird
-// implement MODE klo
-// error replies all around
-// KICK
+// MODE klo
 // PING PONG
+// error replies all around
+// WHOIS - finish replies
+// WHO replies may be weird ?
 
 static void handle_sigint(int signal)
 {
