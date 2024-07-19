@@ -40,21 +40,35 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 		return;
 	
 	}
-	// if its successful 
+
+	// if its successful:
+
 	// RPL_WHOISUSER
 	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISUSER + " " + client.nick + " " + target->nick + " " + target->user + " " + target->hostname + " * :" + target->realname + "\r\n");
+	
 	// RPL_WHOISSERVER
 	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISSERVER + " " + client.nick + " " + target->nick + " " + SERVER_NAME + " :A very cool server\r\n");
-
-	// RPL_WHOISIDLE
-	//sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISIDLE + " " + client.nick + " " + target->nick + " " + target->getTimeSinceLastActivity() + " 0 :seconds idle, signon time\r\n");
-	// RPL_WHOISCHANNELS
-	// RPL_WHOISACTUALLY
-	// RPL_AWAY - later
 	
 	// RPL_WHOISHOST
 	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISHOST + " " + client.nick + " " + target->nick + " :is connecting from " + target->userAtHost + "\r\n");
+	
+	// RPL_WHOISCHANNELS: will show the channels the user is in
+	std::string channelList;
+	for (std::list<Channel>::iterator it1 = channels.begin(); it1 != channels.end(); ++it1)
+	{
+		for (std::map<Client*,char>::iterator it2 = it1->userList.begin(); it2 != it1->userList.end(); ++it2)
+		{
+			if (it2->first == target)
+				channelList += it1->channelName + " ";
+		}
+	}
+	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISCHANNELS + " " + client.nick + " " + target->nick + " :" + channelList + "\r\n");
+
 	// reply RPL_ENDOFWHOIS
 	sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_ENDOFWHOIS + " " + client.nick + " " + target->nick + " :End of WHOIS list\r\n");
+	
+	// RPL_WHOISIDLE -LATER
+	//sendMessage(socket, std::string(":") + SERVER_NAME + " " + RPL_WHOISIDLE + " " + client.nick + " " + target->nick + " " + target->getTimeSinceLastActivity() + " 0 :seconds idle, signon time\r\n");
+	// RPL_AWAY - LATER
 }
 

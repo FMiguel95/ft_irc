@@ -13,8 +13,8 @@
 // MODE klo
 // PING PONG
 // error replies all around
-// WHOIS - finish replies
-// WHO replies may be weird ?
+// WHOIS (idle and away missing  -not sure if we will do it)
+// WHO replies may be weird ? - done
 
 static void handle_sigint(int signal)
 {

@@ -40,5 +40,5 @@ void Server::cmdWHO(const int& socket, const t_message* message)
 		}
 	}
 	// reply RPL_ENDOFWHO
-	sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ENDOFWHO + " " + client.nick + " :End of /WHO list\r\n");
+	sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ENDOFWHO + " " + client.nick + " " + message->arguments[0] + " :End of /WHO list\r\n");
 }
