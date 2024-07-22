@@ -19,8 +19,26 @@ void Server::cmdQUIT(const int& socket, const t_message* message)
 		if (userInChannel == i->userList.end())
 			continue;
 		i->userList.erase(userInChannel);
+		
 		// notificar outros users da saida
 		broadcastMessage(*i, std::string(":") + client.nick + "!" + client.userAtHost + " QUIT :Client Quit\r\n");
+		
+		// if the user had an invite for that channel, remove it
+		for (std::list<Client*>::iterator j = i->invitedUsers.begin(); j != i->invitedUsers.end(); ++j)
+		{
+			if ((*j)->nick == client.nick)
+			{
+				i->invitedUsers.erase(j);
+				break;
+			}
+		}
+		
+		// if the channel is empty, remove it
+		if (i->userList.empty())
+		{
+			channels.erase(i);
+			break;
+		}
 	}
 	//clients.erase(socket);
 	client.isRegistered = false;

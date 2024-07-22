@@ -19,9 +19,11 @@ messageOfTheDay("")
 	if (!infile)
 	{
 		std::cerr << "MOTD: " << std::strerror(errno) << std::endl;
+		hasMOTD = false;
 		return;
 	}
 	// read from input file
+	hasMOTD = true;
 	for (std::string line; std::getline(infile, line); )
 	{
 		messageOfTheDay.append(line);
@@ -42,9 +44,11 @@ messageOfTheDay("")
 	if (!infile)
 	{
 		std::cerr << "MOTD: " << std::strerror(errno) << std::endl;
+		hasMOTD = false;
 		return;
 	}
 	// read from input file
+	hasMOTD = true;
 	for (std::string line; std::getline(infile, line); )
 	{
 		messageOfTheDay.append(line);
@@ -331,7 +335,7 @@ Client* Server::getClientByNick(const std::string& nick)
 {
 	for (std::map<int, Client>::iterator i = clients.begin(); i != clients.end(); ++i)
 	{
-		if (i->second.nick == nick)
+		if (i->second.nick == nick && i->second.isRegistered)
 			return (Client*)&i->second;
 	}
 	return NULL;

@@ -97,4 +97,27 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	
 	// remove the user from the channel
 	channel->userList.erase(targetInChannel);
+
+	// if the user had an invite for that channel, remove it
+	for (std::list<Client*>::iterator i = channel->invitedUsers.begin(); i != channel->invitedUsers.end(); ++i)
+	{
+		if ((*i)->nick == client.nick)
+		{
+			channel->invitedUsers.erase(i);
+			break;
+		}
+	}
+	
+	// if the channel is empty, remove it
+	if (channel->userList.empty())
+	{
+		for (std::list<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+		{
+			if (it->channelName == channel->channelName)
+			{
+				channels.erase(it);
+				break;
+			}
+		}
+	}
 }

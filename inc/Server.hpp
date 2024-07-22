@@ -101,6 +101,7 @@ private:
 	std::string serverPassword;
 	time_t serverCreationTime;
 	std::string messageOfTheDay;
+	bool hasMOTD;
 	std::map<int,Client> clients;	// socket/client pair
 	std::list<Channel> channels;	// list of channels
 	t_message message;

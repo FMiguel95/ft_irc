@@ -2,7 +2,7 @@
 
 void Server::sendMOTD(const Client& client)
 {
-	if (messageOfTheDay.empty())
+	if (hasMOTD == false)
 	{
 		// reply ERR_NOMOTD
 		sendMessage(client.socket, std::string(":") + SERVER_NAME + " " + ERR_NOMOTD + " " + client.nick + " :MOTD File is missing\n\r");

@@ -10,11 +10,7 @@
 
 // TODO
 //
-// MODE klo
-// PING PONG
-// error replies all around
-// WHOIS (idle and away missing  -not sure if we will do it)
-// WHO replies may be weird ? - done
+// PING PONG and timeout stuff
 
 static void handle_sigint(int signal)
 {

@@ -56,7 +56,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		}
 		// iterar pelos modos
 		bool setMode = true;
-		int argIndex = -1;
+		int argIndex = 1;
 		for (size_t i = 0; i < message->arguments[1].length(); i++)
 		{
 			switch (message->arguments[1][i])
@@ -93,12 +93,68 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 				break;
 			case 'k':
 				argIndex++;
+				if (setMode && argIndex < 15)
+				{
+					std::string newKey = message->arguments[argIndex];
+					// std::cout << "newKey: " << newKey << std::endl;
+					newKey.erase(std::remove(newKey.begin(), newKey.end(), ' '), newKey.end());
+					// std::cout << "newKey post replace: " << newKey << std::endl;
+					channel->channelMode |= MODE_k;
+					channel->channelKey = newKey;
+					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " +k " + newKey + "\r\n");
+				}
+				else if (!setMode)
+				{
+					channel->channelMode &= ~MODE_k;
+					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -k\r\n");
+				}
 				break;
 			case 'l':
 				argIndex++;
+				if (setMode && argIndex < 15)
+				{
+					// std::cout << "argIndex: " << argIndex << std::endl;
+					int newLimit = std::atoi(message->arguments[argIndex].c_str());
+					if (newLimit <= 0)
+						continue;
+					channel->channelMode |= MODE_l;
+					channel->userLimit = newLimit;
+					std::ostringstream reply;
+					reply << ":" << client.nick << "!" << client.userAtHost << " MODE " << channel->channelName << " +l " << newLimit << "\r\n";
+					sendMessage(socket, reply.str());
+				}
+				else if (!setMode)
+				{
+					channel->channelMode &= ~MODE_l;
+					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -l\r\n");
+				}
 				break;
 			case 'o':
 				argIndex++;
+				if (setMode && argIndex < 15 && !message->arguments[argIndex].empty())
+				{
+					std::map<Client*,char>::iterator clientInChannel = channel->getClientInChannel(message->arguments[argIndex]); 
+					if (clientInChannel == channel->userList.end())
+					{
+						// reply ERR_USERNOTINCHANNEL
+						sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + message->arguments[argIndex] + " " + channel->channelName + " :They aren't on that channel\r\n");
+						continue;
+					}
+					clientInChannel->second |= MODE_o;
+					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " +o " + message->arguments[argIndex] + "\r\n");
+				}
+				else if (!setMode)
+				{
+					std::map<Client*,char>::iterator clientInChannel = channel->getClientInChannel(message->arguments[argIndex]); 
+					if (clientInChannel == channel->userList.end())
+					{
+						// reply ERR_USERNOTINCHANNEL
+						sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + message->arguments[argIndex] + " " + channel->channelName + " :They aren't on that channel\r\n");
+						continue;
+					}
+					clientInChannel->second &= ~MODE_o;
+					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -o " + message->arguments[argIndex] + "\r\n");
+				}
 				break;
 			default:
 				// reply ERR_UMODEUNKNOWNFLAG

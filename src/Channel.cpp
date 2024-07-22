@@ -45,7 +45,7 @@ std::map<Client*,char>::iterator Channel::getClientInChannel(const std::string& 
 {
 	for (std::map<Client*,char>::iterator it = userList.begin(); it != userList.end(); ++it)
 	{
-		if (it->first->nick == nick)
+		if (it->first->nick == nick && it->first->isRegistered)
 			return it;
 	}
 	return userList.end();
