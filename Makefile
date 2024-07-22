@@ -7,6 +7,7 @@ SRC_LIST = main.cpp \
 			cmdPASS.cpp \
 			cmdNICK.cpp \
 			cmdUSER.cpp \
+			cmdMOTD.cpp \
 			cmdLIST.cpp \
 			cmdJOIN.cpp \
 			cmdPART.cpp \
@@ -18,6 +19,7 @@ SRC_LIST = main.cpp \
 			cmdKICK.cpp \
 			cmdINVITE.cpp \
 			cmdPING.cpp \
+			cmdPONG.cpp \
 			cmdQUIT.cpp
 
 SRC_DIR = src/

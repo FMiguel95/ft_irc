@@ -6,20 +6,20 @@
 
 void Server::cmdPING(const int& socket, const t_message* message)
 {
-    Client& client = clients.at(socket);
+	Client& client = clients.at(socket);
 
-    // validate if the user is registered
-    if (!client.isRegistered)
-        return;
+	// validate if the user is registered
+	if (!client.isRegistered)
+		return;
 
-    // validar se tem argumentos
-    if (message->arguments[0].empty())
-    {
-        // reply ERR_NOORIGIN
-        sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOORIGIN + " " + client.nick + " PING :No origin specified\r\n");
-        return;
-    }
+	// validar se tem argumentos
+	if (message->arguments[0].empty())
+	{
+		// reply ERR_NOORIGIN
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOORIGIN + " " + client.nick + " PING :No origin specified\r\n");
+		return;
+	}
 
-    // reply PONG
-    sendMessage(socket, std::string(":") + SERVER_NAME + " PONG " + SERVER_NAME + " :" + message->arguments[0] + "\r\n");
+	// reply PONG
+	sendMessage(socket, std::string(":") + SERVER_NAME + " PONG " + SERVER_NAME + " :" + message->arguments[0] + "\r\n");
 }

@@ -5,6 +5,7 @@
 #include <list>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <cctype>
 #include <ctime>
 #include <sstream>
@@ -44,6 +45,9 @@
 #define RPL_WHOREPLY			"352"
 #define RPL_NAMREPLY			"353"
 #define RPL_ENDOFNAMES			"366"
+#define RPL_MOTD				"372"
+#define RPL_MOTDSTART			"375"
+#define RPL_ENDOFMOTD			"376"
 #define RPL_WHOISHOST			"378"
 
 #define ERR_NOSUCHNICK			"401"
@@ -53,6 +57,7 @@
 #define ERR_NORECIPIENT			"411"
 #define ERR_NOTEXTTOSEND		"412"
 #define ERR_UNKNOWNCOMMAND		"421"
+#define ERR_NOMOTD				"422"
 #define ERR_NONICKNAMEGIVEN		"431"
 #define ERR_ERRONEUSNICKNAME	"432"
 #define ERR_NICKNAMEINUSE		"433"
@@ -92,9 +97,10 @@ public:
 	int runServer(); // will be called in main
 
 private:
-	time_t serverCreationTime;
 	int serverPort;
 	std::string serverPassword;
+	time_t serverCreationTime;
+	std::string messageOfTheDay;
 	std::map<int,Client> clients;	// socket/client pair
 	std::list<Channel> channels;	// list of channels
 	t_message message;
@@ -131,6 +137,8 @@ private:
 
 	bool isChannelNameValid(const std::string& name) const;
 
+	void checkRegistration(Client& client);
+
 	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
 	// Command: PASS
 	// Parameters: <password>
@@ -145,6 +153,12 @@ private:
 	// Command: USER
 	// Parameters: <user> <mode> <unused> <realname>
 	void cmdUSER(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.4.1
+	// Command: MOTD
+	// Parameters: [ <target> ]
+	void cmdMOTD(const int& socket, const t_message* message);
+	void sendMOTD(const Client& client);
 
 	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.1
 	// Command: JOIN

@@ -16,7 +16,7 @@ static bool isNickinUse(const std::string& nick, std::map<int,Client>& clients)
 {
 	for (std::map<int,Client>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
-		if (it->second.isRegistered && it->second.getUserInfo('n') == nick)
+		if (it->second.isRegistered && it->second.nickOk && it->second.getUserInfo('n') == nick)
 			return (true);
 	}
 	return (false);
@@ -76,25 +76,27 @@ void Server::cmdNICK(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NONICKNAMEGIVEN
-		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NONICKNAMEGIVEN + " " + client.nick + " :No nickname given\r\n");
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NONICKNAMEGIVEN + " :No nickname given\r\n");
 		return;
 	}
 	// validar caracteres do nick
 	if (isNickValid(message->arguments[0]) == false)
 	{
 		// reply ERR_ERRONEUSNICKNAME
-		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_ERRONEUSNICKNAME + " " + client.nick + " " + message->arguments[0] + " :Erroneous nickname\r\n");
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_ERRONEUSNICKNAME + " " + message->arguments[0] + " " + message->arguments[0] + " :Erroneous nickname\r\n");
 		return;
 	}
 	// validar que o nick nao esta a ser utilizado por outro user
 	if (isNickinUse(message->arguments[0], clients) == true)
 	{
 		// reply ERR_NICKNAMEINUSE
-		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NICKNAMEINUSE + " " + client.nick + " " + message->arguments[0] + " :Nickname is already in use\r\n");
+		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NICKNAMEINUSE + " " + message->arguments[0] + " " + message->arguments[0] + " :Nickname is already in use\r\n");
 		return;
 	}
 	// OK
 	// add nick to the client
 	client.nick = message->arguments[0];
 	client.nickOk = true;
+
+	checkRegistration(client);
 }

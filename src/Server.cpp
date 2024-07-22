@@ -8,21 +8,60 @@ static int error_exit(const char *message)
 
 bool Server::run = false;
 
-Server::Server() : serverPort(6667), serverPassword(""), serverCreationTime(std::time(NULL))/*, run(true)*/ {}
+Server::Server() :
+serverPort(6667),
+serverPassword(""),
+serverCreationTime(std::time(NULL)),
+messageOfTheDay("")
+{
+	// open input file
+	std::ifstream infile("MOTD");
+	if (!infile)
+	{
+		std::cerr << "MOTD: " << std::strerror(errno) << std::endl;
+		return;
+	}
+	// read from input file
+	for (std::string line; std::getline(infile, line); )
+	{
+		messageOfTheDay.append(line);
+		if (!infile.eof())
+			messageOfTheDay.push_back('\n');
+	}
+	infile.close();
+}
 
-Server::Server(const int& serverPort, const std::string& serverPassword) : 
-											serverPort(serverPort),
-											serverPassword(serverPassword),
-											serverCreationTime(std::time(NULL))/*,
-											run(true)*/ {}
+Server::Server(const int& serverPort, const std::string& serverPassword) :
+serverPort(serverPort),
+serverPassword(serverPassword),
+serverCreationTime(std::time(NULL)),
+messageOfTheDay("")
+{
+	// open input file
+	std::ifstream infile("MOTD");
+	if (!infile)
+	{
+		std::cerr << "MOTD: " << std::strerror(errno) << std::endl;
+		return;
+	}
+	// read from input file
+	for (std::string line; std::getline(infile, line); )
+	{
+		messageOfTheDay.append(line);
+		if (!infile.eof())
+			messageOfTheDay.push_back('\n');
+	}
+	infile.close();
+}
 
 Server::Server(const Server& src) :
 							serverPort(src.serverPort),
 							serverPassword(src.serverPassword),
 							clients(src.clients),
 							channels(src.channels),
-							serverCreationTime(src.serverCreationTime)/*,
-							run(src.run)*/ {}
+							serverCreationTime(src.serverCreationTime),
+							messageOfTheDay(src.messageOfTheDay)
+							{}
 
 Server::~Server() {}
 
@@ -35,7 +74,7 @@ Server& Server::operator = (const Server& src)
 		clients = src.clients;
 		channels = src.channels;
 		serverCreationTime = src.serverCreationTime;
-		//run = src.run;
+		messageOfTheDay = src.messageOfTheDay;
 	}
 	return *this;
 }
@@ -268,6 +307,10 @@ void Server::handleMessage(const int& socket, t_message* message)
 		cmdWHOIS(socket, message);
 	else if (message->command == "QUIT")
 		cmdQUIT(socket, message);
+	else if (message->command == "PING")
+		cmdPING(socket, message);
+	else if (message->command == "PONG")
+		cmdPONG(socket, message);
 	else if (message->command == "CAP")
 		return;
 	else // reply ERR_UNKNOWNCOMMAND
@@ -312,4 +355,19 @@ bool Server::isChannelNameValid(const std::string& name) const
 	}
 	// std::cout << "valid" << std::endl;
 	return true;
+}
+
+void Server::checkRegistration(Client& client)
+{
+	// se a pass nick e user do client estiverem OK permitir login no servidor
+	if (!client.isRegistered && (serverPassword.empty() || client.passOk) && client.nickOk && client.userOk)
+	{
+		client.isRegistered = true;
+		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_WELCOME + " " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
+		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_YOURHOST + " " + client.nick + " :Your host is " + SERVER_NAME + ", running version v0.1\r\n");
+		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_CREATED + " " + client.nick + " :This server was created " + std::asctime(std::localtime(&serverCreationTime)));
+		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_MYINFO + " " + client.nick + " localhost v0.1 o iklt\r\n"); // ?
+		// sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ISUPPORT + " " + client.nick + " ? ?? ??? :are supported by this server\r\n"); // ?
+		sendMOTD(client);
+	}
 }
