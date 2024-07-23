@@ -19,6 +19,8 @@ public:
 	bool nickOk;
 	bool userOk;
 
+	bool pendingPong;
+
 	Client(const int& socket);
 	Client(const Client& src);
 	~Client();
@@ -26,14 +28,16 @@ public:
 
 	// returns the difference in seconds
 	double getTimeSinceLastActivity() const;
+	double getTimeSinceLastPing() const;
 	void updateActivityTime();
+	void updatePingTime();
 
 	std::string getUserInfo(char choice) const;
 
 private:
 	Client();
-	// std::string _servername;
 	
 	std::time_t _lastActivityTime;
+	std::time_t _lastPingTime;
 
 };

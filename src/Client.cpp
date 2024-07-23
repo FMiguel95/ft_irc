@@ -5,7 +5,10 @@ socket(0),
 isRegistered(false),
 passOk(false),
 nickOk(false),
-userOk(false)
+userOk(false),
+_lastActivityTime(std::time(NULL)),
+_lastPingTime(std::time(NULL)),
+pendingPong(false)
 {}
 
 Client::Client(const int& socket) :
@@ -13,7 +16,10 @@ socket(socket),
 isRegistered(false),
 passOk(false),
 nickOk(false),
-userOk(false)
+userOk(false),
+_lastActivityTime(std::time(NULL)),
+_lastPingTime(std::time(NULL)),
+pendingPong(false)
 {}
 
 Client::Client(const Client& src) :
@@ -24,10 +30,12 @@ nickOk(src.nickOk),
 userOk(src.userOk),
 nick(src.nick),
 user(src.user),
+pendingPong(src.pendingPong),
 userAtHost(src.userAtHost),
 realname(src.realname),
 hostname(src.hostname),
-_lastActivityTime(src._lastActivityTime)
+_lastActivityTime(src._lastActivityTime),
+_lastPingTime(src._lastPingTime)
 {}
 
 Client::~Client() {}
@@ -45,13 +53,25 @@ Client& Client::operator =(const Client& src)
 double Client::getTimeSinceLastActivity() const
 {
 	std::time_t currentTime = std::time(NULL);
-	double difference = std::difftime(_lastActivityTime, currentTime);
+	double difference = std::difftime(currentTime, _lastActivityTime);
+	return difference;
+}
+
+double Client::getTimeSinceLastPing() const
+{
+	std::time_t currentTime = std::time(NULL);
+	double difference = std::difftime(currentTime, _lastPingTime);
 	return difference;
 }
 
 void Client::updateActivityTime()
 {
 	_lastActivityTime = std::time(NULL);
+}
+
+void Client::updatePingTime()
+{
+	_lastPingTime = std::time(NULL);
 }
 
 std::string Client::getUserInfo(char choice) const

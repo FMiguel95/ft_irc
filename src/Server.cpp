@@ -15,10 +15,10 @@ serverCreationTime(std::time(NULL)),
 messageOfTheDay("")
 {
 	// open input file
-	std::ifstream infile("MOTD");
+	std::ifstream infile("MOTD.txt");
 	if (!infile)
 	{
-		std::cerr << "MOTD: " << std::strerror(errno) << std::endl;
+		std::cerr << "MOTD.txt: " << std::strerror(errno) << std::endl;
 		hasMOTD = false;
 		return;
 	}
@@ -40,10 +40,10 @@ serverCreationTime(std::time(NULL)),
 messageOfTheDay("")
 {
 	// open input file
-	std::ifstream infile("MOTD");
+	std::ifstream infile("MOTD.txt");
 	if (!infile)
 	{
-		std::cerr << "MOTD: " << std::strerror(errno) << std::endl;
+		std::cerr << "MOTD.txt: " << std::strerror(errno) << std::endl;
 		hasMOTD = false;
 		return;
 	}
@@ -165,8 +165,6 @@ int Server::runServer()
 				if (bytesRead <= 0)
 				{
 					std::cout << "\001\e[0;31m" << "Client " << fds[i].fd << " disconnected\n" << "\e[0m\002";
-					// else
-					// 	error_exit("Error receiving data from client");
 					clients.erase(fds[i].fd);
 					close(fds[i].fd);
 					fds.erase(fds.begin() + i);
@@ -176,7 +174,16 @@ int Server::runServer()
 				std::string clientMessage = std::string(buffer, 0, bytesRead);
 				receiveMessage(fds[i].fd, clientMessage);
 			}
+			if ((fds[i].revents & POLLHUP) || (fds[i].revents & POLLERR))
+			{
+				std::cout << "\001\e[0;31m" << "Client " << fds[i].fd << ": poll error\n" << "\e[0m\002";
+				clients.erase(fds[i].fd);
+				close(fds[i].fd);
+				fds.erase(fds.begin() + i);
+				i--;
+			}
 		}
+		checkTimeouts(fds);
 	}
 	return (0);
 }
@@ -318,7 +325,7 @@ void Server::handleMessage(const int& socket, t_message* message)
 	else if (message->command == "CAP")
 		return;
 	else // reply ERR_UNKNOWNCOMMAND
-		sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
+		sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
 }
 
 Channel* Server::getChannelByName(const std::string& name)
@@ -367,11 +374,85 @@ void Server::checkRegistration(Client& client)
 	if (!client.isRegistered && (serverPassword.empty() || client.passOk) && client.nickOk && client.userOk)
 	{
 		client.isRegistered = true;
-		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_WELCOME + " " + client.nick + " :Welcome to the Internet Relay Network, " + client.nick + "!\r\n");
-		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_YOURHOST + " " + client.nick + " :Your host is " + SERVER_NAME + ", running version v0.1\r\n");
-		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_CREATED + " " + client.nick + " :This server was created " + std::asctime(std::localtime(&serverCreationTime)));
-		sendMessage(client.socket, std::string(":") + SERVER_NAME " " + RPL_MYINFO + " " + client.nick + " localhost v0.1 o iklt\r\n"); // ?
-		// sendMessage(socket, std::string(":") + SERVER_NAME " " + RPL_ISUPPORT + " " + client.nick + " ? ?? ??? :are supported by this server\r\n"); // ?
+		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_WELCOME + " " + client.nick + " :Welcome to the " + SERVER_NAME + " Internet Relay Network, " + client.nick + "!\r\n");
+		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_YOURHOST + " " + client.nick + " :Your host is " + SERVER_ADDRESS + ", running version v0.1\r\n");
+		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_CREATED + " " + client.nick + " :This server was created " + std::asctime(std::localtime(&serverCreationTime)));
+		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_MYINFO + " " + client.nick + " localhost v0.1 o iklt\r\n");
 		sendMOTD(client);
 	}
+}
+
+void Server::checkTimeouts(std::vector<pollfd>& fds)
+{
+	for (size_t i = 1; i < fds.size(); i++)
+	{
+		Client& client = clients.at(fds[i].fd);
+		double diff = client.getTimeSinceLastActivity();
+		//std::cout << "time since last act: " << diff << std::endl;
+		if (diff > TIMEOUT_TIME && client.pendingPong == false && client.isRegistered)
+		{
+			// ping the client
+			sendMessage(client.socket, std::string(":") + SERVER_ADDRESS + " PING\n\r");
+			client.updatePingTime();
+			client.pendingPong = true;
+		}
+		else if (diff > TIMEOUT_TIME && !client.isRegistered)
+		{
+			// just kill the connection lol
+			std::cout << "client " << client.socket << ": disconnect unregistered" << std::endl;
+			clients.erase(fds[i].fd);
+			close(fds[i].fd);
+			fds.erase(fds.begin() + i);
+			i--;
+			continue;
+		}
+		diff = client.getTimeSinceLastPing();
+		if (client.pendingPong)
+			std::cout << diff << std::endl;
+		if (client.pendingPong && diff > TIMEOUT_TIME)
+		{
+			// disconnect the client
+			std::ostringstream reason;
+			reason << "Ping timeout: " << diff << " seconds";
+			unregisterClient(client, reason.str());
+			sendMessage(client.socket, std::string(":") + SERVER_ADDRESS + " ERROR :" + reason.str() + "\r\n");
+			clients.erase(fds[i].fd);
+			close(fds[i].fd);
+			fds.erase(fds.begin() + i);
+			i--;
+		}
+	}
+}
+
+void Server::unregisterClient(Client& client, const std::string& reason)
+{
+	for (std::list<Channel>::iterator i = channels.begin(); i != channels.end(); ++i)
+	{
+		std::map<Client*,char>::iterator userInChannel = i->getClientInChannel(client.nick);
+		if (userInChannel == i->userList.end())
+			continue;
+		i->userList.erase(userInChannel);
+		
+		// notificar outros users da saida
+		broadcastMessage(*i, std::string(":") + client.nick + "!" + client.userAtHost + " QUIT :" + reason + "\r\n");
+		
+		// if the user had an invite for that channel, remove it
+		for (std::list<Client*>::iterator j = i->invitedUsers.begin(); j != i->invitedUsers.end(); ++j)
+		{
+			if ((*j)->nick == client.nick)
+			{
+				i->invitedUsers.erase(j);
+				break;
+			}
+		}
+		
+		// if the channel is empty, remove it
+		if (i->userList.empty())
+		{
+			channels.erase(i);
+			break;
+		}
+	}
+	client.isRegistered = false;
+	client.nickOk = false;
 }

@@ -16,10 +16,10 @@ void Server::cmdPING(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NOORIGIN
-		sendMessage(socket, std::string(":") + SERVER_NAME + " " + ERR_NOORIGIN + " " + client.nick + " PING :No origin specified\r\n");
+		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NOORIGIN + " " + client.nick + " PING :No origin specified\r\n");
 		return;
 	}
 
 	// reply PONG
-	sendMessage(socket, std::string(":") + SERVER_NAME + " PONG " + SERVER_NAME + " :" + message->arguments[0] + "\r\n");
+	sendMessage(socket, std::string(":") + SERVER_ADDRESS + " PONG " + SERVER_ADDRESS + " :" + message->arguments[0] + "\r\n");
 }

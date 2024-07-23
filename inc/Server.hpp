@@ -20,7 +20,10 @@
 #include "Channel.hpp"
 
 
-#define SERVER_NAME				"localhost"
+#define SERVER_ADDRESS			"localhost"
+#define SERVER_NAME				"ft_irc"
+
+#define TIMEOUT_TIME			5
 
 #define RPL_WELCOME				"001"
 #define RPL_YOURHOST			"002"
@@ -106,8 +109,6 @@ private:
 	std::list<Channel> channels;	// list of channels
 	t_message message;
 
-	void handle_sigint(int signal);
-
 	void sendMessage(const int& socket, const std::string& message);
 
 	void broadcastMessage(Channel& channel, const std::string& message);
@@ -128,13 +129,10 @@ private:
 
 	Client* getClientByNick(const std::string& nick);
 
-	// closes connection to a specific socket
-	// sends appropriate message and removes client from the list, etc..
-	// usar quando o client se desconectar, der timeout, não reponder a ping......
-	void closeConnection(const int& socket);
+	void unregisterClient(Client& client, const std::string& reason);
 
 	// iterates through the list of clients and pings or disconnects ones that have been inactive too long
-	void checkTimeouts();
+	void checkTimeouts(std::vector<pollfd>& fds);
 
 	bool isChannelNameValid(const std::string& name) const;
 

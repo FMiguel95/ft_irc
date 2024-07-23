@@ -15,7 +15,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 	// se nao tem parametros, reply ERR_NEEDMOREPARAMS
 	if (message->arguments[0].empty())
 	{
-		sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_NEEDMOREPARAMS + " " + client.nick + " MODE :Not enough parameters\r\n");
+		sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_NEEDMOREPARAMS + " " + client.nick + " MODE :Not enough parameters\r\n");
 		return;
 	}
 
@@ -26,14 +26,14 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		if (!channel)
 		{
 			// reply ERR_NOSUCHCHANNEL
-			sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
+			sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
 			return;
 		}
 		// se nao tem mais parametros, reply RPL_CHANNELMODEIS
 		if (message->arguments[1].empty())
 		{
 			std::string reply;
-			reply = std::string(":") + SERVER_NAME " " + RPL_CHANNELMODEIS + " " + client.nick + " " + channel->channelName + " ";
+			reply = std::string(":") + SERVER_ADDRESS " " + RPL_CHANNELMODEIS + " " + client.nick + " " + channel->channelName + " ";
 			if (channel->channelMode & MODE_i)
 				reply += "i";
 			if (channel->channelMode & MODE_t)
@@ -51,7 +51,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		if (i == channel->userList.end() || (i->second & MODE_o) == 0)
 		{
 			// reply ERR_CHANOPRIVSNEEDED
-			sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + channel->channelName + " :You're not channel operator\r\n");
+			sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + channel->channelName + " :You're not channel operator\r\n");
 			return;
 		}
 		// iterar pelos modos
@@ -137,7 +137,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 					if (clientInChannel == channel->userList.end())
 					{
 						// reply ERR_USERNOTINCHANNEL
-						sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + message->arguments[argIndex] + " " + channel->channelName + " :They aren't on that channel\r\n");
+						sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + message->arguments[argIndex] + " " + channel->channelName + " :They aren't on that channel\r\n");
 						continue;
 					}
 					clientInChannel->second |= MODE_o;
@@ -149,7 +149,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 					if (clientInChannel == channel->userList.end())
 					{
 						// reply ERR_USERNOTINCHANNEL
-						sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + message->arguments[argIndex] + " " + channel->channelName + " :They aren't on that channel\r\n");
+						sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + message->arguments[argIndex] + " " + channel->channelName + " :They aren't on that channel\r\n");
 						continue;
 					}
 					clientInChannel->second &= ~MODE_o;
@@ -158,7 +158,7 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 				break;
 			default:
 				// reply ERR_UMODEUNKNOWNFLAG
-				sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_UMODEUNKNOWNFLAG + " " + client.nick + " :Unknown MODE flag\r\n");
+				sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_UMODEUNKNOWNFLAG + " " + client.nick + " :Unknown MODE flag\r\n");
 				break;
 			}
 		}
@@ -170,14 +170,14 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 		if (!user)
 		{
 			// reply ERR_NOSUCHNICK
-			sendMessage(socket, std::string(":") + SERVER_NAME " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
+			sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
 			return;
 		}
 		// se nao tem mais parametros, reply RPL_UMODEIS
 		if (message->arguments[1].empty())
 		{
 			std::string reply;
-			reply = std::string(":") + SERVER_NAME " " + RPL_UMODEIS + " " + client.nick + "\r\n";
+			reply = std::string(":") + SERVER_ADDRESS " " + RPL_UMODEIS + " " + client.nick + "\r\n";
 			// no user modes supported
 			// +o is different from channel to channel
 			sendMessage(socket, reply);
