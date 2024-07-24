@@ -18,9 +18,9 @@ void Server::cmdLIST(const int& socket, const t_message* message)
 			// reply RPL_LIST
 			std::ostringstream oss;
 			// if (i->topic.empty())
-			// 	oss << ":") + SERVER_ADDRESS + " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << "\r\n";
+			// 	oss << ":") + serverHostname + " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << "\r\n";
 			// else
-				oss << ":" << SERVER_ADDRESS << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
+				oss << ":" << serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
 			sendMessage(socket, oss.str());
 		}
 	}
@@ -44,11 +44,11 @@ void Server::cmdLIST(const int& socket, const t_message* message)
 			{
 				// reply RPL_LIST
 				std::ostringstream oss;
-				oss << ":" << SERVER_ADDRESS << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
+				oss << ":" << serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
 				sendMessage(socket, oss.str());
 			}
 		}
 	}
 	// reply RPL_LISTEND
-	sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + RPL_LISTEND + " " + client.nick + " :End of /LIST\r\n");
+	sendMessage(socket, std::string(":") + serverHostname + " " + RPL_LISTEND + " " + client.nick + " :End of /LIST\r\n");
 }

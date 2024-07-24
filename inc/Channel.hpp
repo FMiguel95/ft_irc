@@ -25,10 +25,10 @@ public:
 	std::string channelName;
 	std::string channelKey;
 	std::string topic;
+	int userLimit;
 	char channelMode; // each bit corresponds to a flag as set in enum ChannelMode
 	std::map<Client*,char> userList; // key: pointer to the client, value: user mode flags
 	std::list<Client*> invitedUsers;
-	int userLimit;
 
 	Channel(const std::string& name, const std::string& key);
 	Channel(const Channel& src);

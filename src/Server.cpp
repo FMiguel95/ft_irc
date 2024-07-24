@@ -14,23 +14,8 @@ serverPassword(""),
 serverCreationTime(std::time(NULL)),
 messageOfTheDay("")
 {
-	// open input file
-	std::ifstream infile("MOTD.txt");
-	if (!infile)
-	{
-		std::cerr << "MOTD.txt: " << std::strerror(errno) << std::endl;
-		hasMOTD = false;
-		return;
-	}
-	// read from input file
-	hasMOTD = true;
-	for (std::string line; std::getline(infile, line); )
-	{
-		messageOfTheDay.append(line);
-		if (!infile.eof())
-			messageOfTheDay.push_back('\n');
-	}
-	infile.close();
+	getHostname();
+	getMOTD();
 }
 
 Server::Server(const int& serverPort, const std::string& serverPassword) :
@@ -39,28 +24,14 @@ serverPassword(serverPassword),
 serverCreationTime(std::time(NULL)),
 messageOfTheDay("")
 {
-	// open input file
-	std::ifstream infile("MOTD.txt");
-	if (!infile)
-	{
-		std::cerr << "MOTD.txt: " << std::strerror(errno) << std::endl;
-		hasMOTD = false;
-		return;
-	}
-	// read from input file
-	hasMOTD = true;
-	for (std::string line; std::getline(infile, line); )
-	{
-		messageOfTheDay.append(line);
-		if (!infile.eof())
-			messageOfTheDay.push_back('\n');
-	}
-	infile.close();
+	getHostname();
+	getMOTD();
 }
 
 Server::Server(const Server& src) :
 							serverPort(src.serverPort),
 							serverPassword(src.serverPassword),
+							serverHostname(src.serverHostname),
 							clients(src.clients),
 							channels(src.channels),
 							serverCreationTime(src.serverCreationTime),
@@ -75,12 +46,49 @@ Server& Server::operator = (const Server& src)
 	{
 		serverPort = src.serverPort;
 		serverPassword = src.serverPassword;
+		serverHostname = src.serverHostname;
 		clients = src.clients;
 		channels = src.channels;
 		serverCreationTime = src.serverCreationTime;
 		messageOfTheDay = src.messageOfTheDay;
 	}
 	return *this;
+}
+
+void Server::getHostname()
+{
+	std::ifstream hostnameFile("/etc/hostname");
+	if (!hostnameFile)
+	{
+		std::cerr << "Error opening /etc/hostname" << std::endl;
+		serverHostname = "localhost";
+		return;
+	}
+
+	std::string hostname;
+	std::getline(hostnameFile, hostname);
+	serverHostname = hostname;
+}
+
+void Server::getMOTD()
+{
+	// open input file
+	std::ifstream motdFile("MOTD.txt");
+	if (!motdFile)
+	{
+		std::cerr << "Error opening MOTD.txt" << std::endl;
+		hasMOTD = false;
+		return;
+	}
+	// read from input file
+	hasMOTD = true;
+	for (std::string line; std::getline(motdFile, line); )
+	{
+		messageOfTheDay.append(line);
+		if (!motdFile.eof())
+			messageOfTheDay.push_back('\n');
+	}
+	motdFile.close();
 }
 
 int Server::runServer()
@@ -176,7 +184,7 @@ int Server::runServer()
 			}
 			if ((fds[i].revents & POLLHUP) || (fds[i].revents & POLLERR))
 			{
-				std::cout << "\001\e[0;31m" << "Client " << fds[i].fd << ": poll error\n" << "\e[0m\002";
+				std::cout << "\001\e[0;31m" << "Client " << fds[i].fd << " poll error\n" << "\e[0m\002";
 				clients.erase(fds[i].fd);
 				close(fds[i].fd);
 				fds.erase(fds.begin() + i);
@@ -185,6 +193,8 @@ int Server::runServer()
 		}
 		checkTimeouts(fds);
 	}
+	for (std::vector<pollfd>::iterator i = fds.begin(); i != fds.end(); ++i)
+		close(i->fd);
 	return (0);
 }
 
@@ -219,15 +229,6 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 		if (parseMessage(message))
 			handleMessage(socket, &this->message);
 	}
-	// // version coppied from above harcodeded to be used with nc
-	// while (client.messageBuffer.find("\n") != std::string::npos)
-	// {
-	// 	std::string message = client.messageBuffer.substr(0, client.messageBuffer.find("\n"));
-	// 	client.messageBuffer.erase(0, client.messageBuffer.find("\n") + 1);
-	// 	std::cout << "\001\e[0;92m" << "Received from socket " << socket << ": " << "\e[0m\002" << message << std::endl;
-	// 	if (parseMessage(message))
-	// 		handleMessage(socket, &this->message);
-	// }
 	//std::cout << "buffer:" << client.messageBuffer << std::endl;
 }
 
@@ -270,10 +271,10 @@ t_message* Server::parseMessage(std::string& stream)
 		}
 		message.arguments[argIndex++] = *i;
 	}
-	// std::cout << "struct prefix:" << message.prefix << std::endl;
-	// std::cout << "struct command:" << message.command << std::endl;
-	// for (size_t i = 0; i < 15; i++)
-	// 	std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
+	std::cout << "struct prefix:" << message.prefix << std::endl;
+	std::cout << "struct command:" << message.command << std::endl;
+	for (size_t i = 0; i < 15; i++)
+		std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
 
 	if (message.command.empty())
 		return NULL;
@@ -325,7 +326,7 @@ void Server::handleMessage(const int& socket, t_message* message)
 	else if (message->command == "CAP")
 		return;
 	else // reply ERR_UNKNOWNCOMMAND
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS " " + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_UNKNOWNCOMMAND + " " + clients.at(socket).nick + " " + message->command + " :Unknown command\r\n");
 }
 
 Channel* Server::getChannelByName(const std::string& name)
@@ -374,10 +375,10 @@ void Server::checkRegistration(Client& client)
 	if (!client.isRegistered && (serverPassword.empty() || client.passOk) && client.nickOk && client.userOk)
 	{
 		client.isRegistered = true;
-		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_WELCOME + " " + client.nick + " :Welcome to the " + SERVER_NAME + " Internet Relay Network, " + client.nick + "!\r\n");
-		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_YOURHOST + " " + client.nick + " :Your host is " + SERVER_ADDRESS + ", running version v0.1\r\n");
-		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_CREATED + " " + client.nick + " :This server was created " + std::asctime(std::localtime(&serverCreationTime)));
-		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_MYINFO + " " + client.nick + " localhost v0.1 o iklt\r\n");
+		sendMessage(client.socket, std::string(":") + serverHostname + " " + RPL_WELCOME + " " + client.nick + " :Welcome to the " + SERVER_NAME + " Internet Relay Network, " + client.nick + "!\r\n");
+		sendMessage(client.socket, std::string(":") + serverHostname + " " + RPL_YOURHOST + " " + client.nick + " :Your host is " + serverHostname + ", running version v0.1\r\n");
+		sendMessage(client.socket, std::string(":") + serverHostname + " " + RPL_CREATED + " " + client.nick + " :This server was created " + std::asctime(std::localtime(&serverCreationTime)));
+		sendMessage(client.socket, std::string(":") + serverHostname + " " + RPL_MYINFO + " " + client.nick + " " + serverHostname + " v0.1 o iklt\r\n");
 		sendMOTD(client);
 	}
 }
@@ -389,14 +390,14 @@ void Server::checkTimeouts(std::vector<pollfd>& fds)
 		Client& client = clients.at(fds[i].fd);
 		double diff = client.getTimeSinceLastActivity();
 		//std::cout << "time since last act: " << diff << std::endl;
-		if (diff > TIMEOUT_TIME && client.pendingPong == false && client.isRegistered)
+		if (client.isRegistered && diff > TIMEOUT_TIME && client.pendingPong == false)
 		{
 			// ping the client
-			sendMessage(client.socket, std::string(":") + SERVER_ADDRESS + " PING\n\r");
+			sendMessage(client.socket, std::string(":") + serverHostname + " PING\n\r");
 			client.updatePingTime();
 			client.pendingPong = true;
 		}
-		else if (diff > TIMEOUT_TIME && !client.isRegistered)
+		else if (!client.isRegistered && diff > TIMEOUT_TIME)
 		{
 			// just kill the connection lol
 			std::cout << "client " << client.socket << ": disconnect unregistered" << std::endl;
@@ -407,15 +408,15 @@ void Server::checkTimeouts(std::vector<pollfd>& fds)
 			continue;
 		}
 		diff = client.getTimeSinceLastPing();
-		if (client.pendingPong)
-			std::cout << diff << std::endl;
-		if (client.pendingPong && diff > TIMEOUT_TIME)
+		// if (client.pendingPong)
+		// 	std::cout << diff << std::endl;
+		if (client.isRegistered && client.pendingPong && diff > PING_TIMEOUT_TIME)
 		{
 			// disconnect the client
 			std::ostringstream reason;
 			reason << "Ping timeout: " << diff << " seconds";
 			unregisterClient(client, reason.str());
-			sendMessage(client.socket, std::string(":") + SERVER_ADDRESS + " ERROR :" + reason.str() + "\r\n");
+			sendMessage(client.socket, std::string(":") + serverHostname + " ERROR :" + reason.str() + "\r\n");
 			clients.erase(fds[i].fd);
 			close(fds[i].fd);
 			fds.erase(fds.begin() + i);

@@ -6,7 +6,8 @@ static bool isNickValid(const std::string& nick)
 	{
 		if (std::isalnum(nick[i]) == false && nick[i] != '\\' && nick[i] != '|' 
 			&& nick[i] != '[' && nick[i] != ']' 
-			&& nick[i] != '{' && nick[i] != '}')
+			&& nick[i] != '{' && nick[i] != '}'
+			&& nick[i] != '_')
 			return (false);
 	}
 	return (true);
@@ -39,21 +40,21 @@ void Server::cmdNICK(const int& socket, const t_message* message)
 		if (message->arguments[0].empty())
 		{
 			// reply ERR_NONICKNAMEGIVEN
-			sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NONICKNAMEGIVEN + " " + client.nick + " :No nickname given\r\n");
+			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NONICKNAMEGIVEN + " " + client.nick + " :No nickname given\r\n");
 			return;
 		}
 		// validar caracteres do nick
 		if (isNickValid(message->arguments[0]) == false)
 		{
 			// reply ERR_ERRONEUSNICKNAME
-			sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_ERRONEUSNICKNAME + " " + client.nick + " " + message->arguments[0] + " :Erroneous nickname\r\n");
+			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_ERRONEUSNICKNAME + " " + client.nick + " " + message->arguments[0] + " :Erroneous nickname\r\n");
 			return;
 		}
 		// validar que o nick nao esta a ser utilizado por outro user
 		if (isNickinUse(message->arguments[0], clients) == true)
 		{
 			// reply ERR_NICKNAMEINUSE
-			sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NICKNAMEINUSE + " " + client.nick + " " + message->arguments[0] + " :Nickname is already in use\r\n");
+			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NICKNAMEINUSE + " " + client.nick + " " + message->arguments[0] + " :Nickname is already in use\r\n");
 			return;
 		}
 		// OK
@@ -69,28 +70,28 @@ void Server::cmdNICK(const int& socket, const t_message* message)
 	{
 		std::cout << "ERR_PASSWDMISMATCH\n";
 		// reply ERR_PASSWDMISMATCH ??? see what to do 
-		//sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_PASSWDMISMATCH + " " + client.nick + " :Password incorrect\r\n");
+		//sendMessage(socket, std::string(":") + serverHostname + " " + ERR_PASSWDMISMATCH + " " + client.nick + " :Password incorrect\r\n");
 		return;
 	}
 	// validar que o comando tem argumento -> the user can't be bigger than 9? copilot recommended this
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NONICKNAMEGIVEN
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NONICKNAMEGIVEN + " :No nickname given\r\n");
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NONICKNAMEGIVEN + " :No nickname given\r\n");
 		return;
 	}
 	// validar caracteres do nick
 	if (isNickValid(message->arguments[0]) == false)
 	{
 		// reply ERR_ERRONEUSNICKNAME
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_ERRONEUSNICKNAME + " " + message->arguments[0] + " " + message->arguments[0] + " :Erroneous nickname\r\n");
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_ERRONEUSNICKNAME + " " + message->arguments[0] + " " + message->arguments[0] + " :Erroneous nickname\r\n");
 		return;
 	}
 	// validar que o nick nao esta a ser utilizado por outro user
 	if (isNickinUse(message->arguments[0], clients) == true)
 	{
 		// reply ERR_NICKNAMEINUSE
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NICKNAMEINUSE + " " + message->arguments[0] + " " + message->arguments[0] + " :Nickname is already in use\r\n");
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NICKNAMEINUSE + " " + message->arguments[0] + " " + message->arguments[0] + " :Nickname is already in use\r\n");
 		return;
 	}
 	// OK

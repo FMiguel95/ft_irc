@@ -17,7 +17,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	if (message->arguments[0].empty() || message->arguments[1].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " KICK :Not enough parameters\r\n");
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " KICK :Not enough parameters\r\n");
 		return;
 	}
 
@@ -26,7 +26,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	if (channel == NULL)
 	{
 		// reply ERR_NOSUCHCHANNEL
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
 		return;
 	}
 
@@ -35,7 +35,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	if (clientInChannel == channel->userList.end())
 	{
 		// reply ERR_NOTONCHANNEL
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + message->arguments[0] + " :You're not on that channel\r\n");
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + message->arguments[0] + " :You're not on that channel\r\n");
 		return;
 	}
 	
@@ -43,7 +43,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	if (!(clientInChannel->second & MODE_o))
 	{
 		// reply ERR_CHANOPRIVSNEEDED
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + message->arguments[0] + " :You're not channel operator\r\n");	
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + message->arguments[0] + " :You're not channel operator\r\n");	
 		return;
 	}
 
@@ -70,7 +70,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 		{
 			std::cout << "RPL ERR_USERNOTINCHANNEL" << std::endl;
 			// reply ERR_USERNOTINCHANNEL
-			sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
+			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
 			return;
 		}
 		targetInChannel = channel->getClientInChannel(target->nick);
@@ -78,7 +78,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 		{
 			std::cout << "RPL ERR_USERNOTINCHANNEL" << std::endl;
 			// reply ERR_USERNOTINCHANNEL
-			sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
+			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
 			return;
 		}
 	}

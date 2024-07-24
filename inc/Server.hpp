@@ -20,10 +20,11 @@
 #include "Channel.hpp"
 
 
-#define SERVER_ADDRESS			"localhost"
+//#define SERVER_ADDRESS			"localhost"
 #define SERVER_NAME				"ft_irc"
 
 #define TIMEOUT_TIME			5
+#define PING_TIMEOUT_TIME		5
 
 #define RPL_WELCOME				"001"
 #define RPL_YOURHOST			"002"
@@ -102,12 +103,17 @@ public:
 private:
 	int serverPort;
 	std::string serverPassword;
+	std::string serverHostname;
 	time_t serverCreationTime;
 	std::string messageOfTheDay;
 	bool hasMOTD;
 	std::map<int,Client> clients;	// socket/client pair
 	std::list<Channel> channels;	// list of channels
 	t_message message;
+
+	void getMOTD();
+
+	void getHostname();
 
 	void sendMessage(const int& socket, const std::string& message);
 

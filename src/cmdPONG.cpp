@@ -13,6 +13,6 @@ void Server::cmdPONG(const int& socket, const t_message* message)
 		return;
 
 	// reply PONG
-	//sendMessage(socket, std::string(":") + SERVER_ADDRESS + " PONG " + SERVER_ADDRESS + " :" + message->arguments[0] + "\r\n");
+	//sendMessage(socket, std::string(":") + serverHostname + " PONG " + serverHostname + " :" + message->arguments[0] + "\r\n");
 	client.pendingPong = false;
 }

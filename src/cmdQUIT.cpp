@@ -16,5 +16,5 @@ void Server::cmdQUIT(const int& socket, const t_message* message)
 		reason = "Client Quit";
 	sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " QUIT :" + reason + "\r\n");
 	unregisterClient(client, reason);
-	sendMessage(socket, std::string(":") + SERVER_ADDRESS + " ERROR :Closing link\r\n");
+	sendMessage(socket, std::string(":") + serverHostname + " ERROR :Closing link\r\n");
 }

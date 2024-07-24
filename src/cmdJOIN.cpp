@@ -13,12 +13,12 @@ void Server::addClientToChannel(Client& client, Channel& channel)
 	// enviar o topico reply RPL_TOPIC ou RPL_NOTOPIC
 	// verificar se existe um topico
 	if (channel.topic.empty())
-		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_NOTOPIC + " " + client.nick + " " + channel.channelName + " :No topic is set\r\n");
+		sendMessage(client.socket, std::string(":") + serverHostname + " " + RPL_NOTOPIC + " " + client.nick + " " + channel.channelName + " :No topic is set\r\n");
 	else
-		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_TOPIC + " " + client.nick + " " + channel.channelName + " :" + channel.topic + "\r\n");
+		sendMessage(client.socket, std::string(":") + serverHostname + " " + RPL_TOPIC + " " + client.nick + " " + channel.channelName + " :" + channel.topic + "\r\n");
 	// talvez enviar tambem RPL_TOPICWHOTIME
 	// enviar a lista de nomes -> reply RPL_NAMREPLY e RPL_ENDOFNAMES
-	std::string message = std::string(":") + SERVER_ADDRESS " " + RPL_NAMREPLY + " " + client.nick + " = " + channel.channelName + " :";
+	std::string message = std::string(":") + serverHostname + " " + RPL_NAMREPLY + " " + client.nick + " = " + channel.channelName + " :";
 	for (std::map<Client*,char>::iterator i = channel.userList.begin(); i != channel.userList.end(); ++i)
 	{
 		std::string nextNickname;
@@ -29,14 +29,14 @@ void Server::addClientToChannel(Client& client, Channel& channel)
 		{
 			message += "\r\n";
 			sendMessage(client.socket, message);
-			message = std::string(":") + SERVER_ADDRESS " " + RPL_NAMREPLY + " " + client.nick + " = " + channel.channelName + " :";
+			message = std::string(":") + serverHostname + " " + RPL_NAMREPLY + " " + client.nick + " = " + channel.channelName + " :";
 		}
 		message += nextNickname + " ";
 	}
 	message += "\r\n";
 	sendMessage(client.socket, message);
 	// reply RPL_ENDOFNAMES
-	sendMessage(client.socket, std::string(":") + SERVER_ADDRESS " " + RPL_ENDOFNAMES + " " + client.nick + " " + channel.channelName + " :End of /NAMES list.\r\n");
+	sendMessage(client.socket, std::string(":") + serverHostname + " " + RPL_ENDOFNAMES + " " + client.nick + " " + channel.channelName + " :End of /NAMES list.\r\n");
 }
 
 void Server::attempJoin(Client& client, const std::string& channelName, const std::string& providedKey)
@@ -46,7 +46,7 @@ void Server::attempJoin(Client& client, const std::string& channelName, const st
 	if (Server::isChannelNameValid(channelName) == false)
 	{
 		// reply ERR_NOSUCHCHANNEL
-		sendMessage(client.socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + channelName + " :No such channel\r\n");
+		sendMessage(client.socket, std::string(":") + serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + channelName + " :No such channel\r\n");
 		return;
 	}
 	Channel* channel = NULL;
@@ -61,14 +61,14 @@ void Server::attempJoin(Client& client, const std::string& channelName, const st
 			if (channel->channelMode & MODE_l && channel->userList.size() >= channel->userLimit)
 			{
 				// reply ERR_CHANNELISFULL
-				sendMessage(client.socket, std::string(":") + SERVER_ADDRESS + " " + ERR_CHANNELISFULL + " " + client.nick + " " + channelName + " :Cannot join channel (+l)\r\n");
+				sendMessage(client.socket, std::string(":") + serverHostname + " " + ERR_CHANNELISFULL + " " + client.nick + " " + channelName + " :Cannot join channel (+l)\r\n");
 				continue;
 			}
 			// validar se esta protegido por password e a key é correta
 			if (channel->channelMode & MODE_k && channel->channelKey != providedKey)
 			{
 				// reply ERR_BADCHANNELKEY
-				sendMessage(client.socket, std::string(":") + SERVER_ADDRESS + " " + ERR_BADCHANNELKEY + " " + client.nick + " " + channelName + " :Cannot join channel (+k)\r\n");
+				sendMessage(client.socket, std::string(":") + serverHostname + " " + ERR_BADCHANNELKEY + " " + client.nick + " " + channelName + " :Cannot join channel (+k)\r\n");
 				continue;
 			}
 			// validar se é invite only e o user nao foi convidado
@@ -76,7 +76,7 @@ void Server::attempJoin(Client& client, const std::string& channelName, const st
 				&& std::find(channel->invitedUsers.begin(), channel->invitedUsers.end(), &client) == channel->invitedUsers.end())
 			{
 				// reply ERR_INVITEONLYCHAN
-				sendMessage(client.socket, std::string(":") + SERVER_ADDRESS + " " + ERR_INVITEONLYCHAN + " " + client.nick + " " + channelName + " :Cannot join channel (+i)\r\n");
+				sendMessage(client.socket, std::string(":") + serverHostname + " " + ERR_INVITEONLYCHAN + " " + client.nick + " " + channelName + " :Cannot join channel (+i)\r\n");
 				continue;
 			}
 			// adicionar o user ao canal
@@ -111,7 +111,7 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
-		sendMessage(socket, std::string(":") + SERVER_ADDRESS + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " JOIN :Not enough parameters\r\n");
+		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " JOIN :Not enough parameters\r\n");
 		return;
 	}
 
