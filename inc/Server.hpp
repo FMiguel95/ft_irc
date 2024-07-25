@@ -23,8 +23,8 @@
 //#define SERVER_ADDRESS			"localhost"
 #define SERVER_NAME				"ft_irc"
 
-#define TIMEOUT_TIME			5
-#define PING_TIMEOUT_TIME		5
+#define TIMEOUT_TIME			60
+#define PING_TIMEOUT_TIME		60
 
 #define RPL_WELCOME				"001"
 #define RPL_YOURHOST			"002"
@@ -196,6 +196,11 @@ private:
 	// Command: PRIVMSG
 	// Parameters: <msgtarget> <text to be sent>
 	void cmdPRIVMSG(const int& socket, const t_message* message);
+
+	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.3.2
+	// Command: NOTICE
+	// Parameters: <msgtarget> <text>
+	void cmdNOTICE(const int& socket, const t_message* message);
 
 	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.6
 	// Command: LIST

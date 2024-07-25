@@ -2,6 +2,8 @@
 
 static bool isNickValid(const std::string& nick)
 {
+	if (nick.length() > 63)
+		return false;
 	for (size_t i = 0; i < nick.size(); i++)
 	{
 		if (std::isalnum(nick[i]) == false && nick[i] != '\\' && nick[i] != '|' 

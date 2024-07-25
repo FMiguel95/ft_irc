@@ -173,6 +173,9 @@ int Server::runServer()
 				if (bytesRead <= 0)
 				{
 					std::cout << "\001\e[0;31m" << "Client " << fds[i].fd << " disconnected\n" << "\e[0m\002";
+					Client& client = clients.at(fds[i].fd);
+					if (client.isRegistered)
+						unregisterClient(client, "Client Quit");
 					clients.erase(fds[i].fd);
 					close(fds[i].fd);
 					fds.erase(fds.begin() + i);
@@ -271,10 +274,10 @@ t_message* Server::parseMessage(std::string& stream)
 		}
 		message.arguments[argIndex++] = *i;
 	}
-	std::cout << "struct prefix:" << message.prefix << std::endl;
-	std::cout << "struct command:" << message.command << std::endl;
-	for (size_t i = 0; i < 15; i++)
-		std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
+	// std::cout << "struct prefix:" << message.prefix << std::endl;
+	// std::cout << "struct command:" << message.command << std::endl;
+	// for (size_t i = 0; i < 15; i++)
+	// 	std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
 
 	if (message.command.empty())
 		return NULL;
@@ -303,6 +306,8 @@ void Server::handleMessage(const int& socket, t_message* message)
 		cmdPART(socket, message);
 	else if (message->command == "PRIVMSG")
 		cmdPRIVMSG(socket, message);
+	else if (message->command == "NOTICE")
+		cmdNOTICE(socket, message);
 	else if (message->command == "MODE")
 		cmdMODE(socket, message);
 	else if (message->command == "TOPIC")

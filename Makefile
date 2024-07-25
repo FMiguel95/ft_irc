@@ -12,6 +12,7 @@ SRC_LIST = main.cpp \
 			cmdJOIN.cpp \
 			cmdPART.cpp \
 			cmdPRIVMSG.cpp \
+			cmdNOTICE.cpp \
 			cmdTOPIC.cpp \
 			cmdWHO.cpp \
 			cmdWHOIS.cpp \
