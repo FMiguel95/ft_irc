@@ -17,6 +17,9 @@ Bot& Bot::operator =(const Bot& src)
 
 int Bot::runBot()
 {
-	
+	while (true)
+	{
+		
+	}
 	return 0;
 }

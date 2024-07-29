@@ -77,7 +77,7 @@ BIN_DIR_BOT = bonus/bot/bin/
 BIN_BOT = $(addprefix $(BIN_DIR_BOT), $(SRC_LIST_BOT:.cpp=.o))
 
 CXX = c++
-CXXFLAGS = -g -std=c++98 -Wall -Werror -Wextra 
+CXXFLAGS = -g -std=c++98 #-Wall -Werror -Wextra 
 RM = rm -rf
 
 .PHONY: all bonus clean fclean re

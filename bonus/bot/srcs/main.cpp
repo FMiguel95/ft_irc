@@ -2,6 +2,7 @@
 
 int main(int ac, char** av)
 {
+	(void)av;
 	if (ac != 4)
 	{
 		std::cerr << "Usage: ./dealer <address> <port> <password>" << std::endl;

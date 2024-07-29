@@ -278,10 +278,10 @@ t_message* Server::parseMessage(std::string& stream)
 			*i = i->substr(1, i->length());
 		message.arguments[argIndex++] = *i;
 	}
-	// std::cout << "struct prefix:" << message.prefix << std::endl;
-	// std::cout << "struct command:" << message.command << std::endl;
-	// for (size_t i = 0; i < 15; i++)
-	// 	std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
+	std::cout << "struct prefix:" << message.prefix << std::endl;
+	std::cout << "struct command:" << message.command << std::endl;
+	for (size_t i = 0; i < 15; i++)
+		std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
 
 	if (message.command.empty())
 		return NULL;
