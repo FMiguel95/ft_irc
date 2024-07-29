@@ -1,3 +1,5 @@
 ircserv
-/bin/*.o
+ircserv_bonus
+dealer
+*.o
 .vscode/

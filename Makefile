@@ -1,5 +1,9 @@
 NAME = ircserv
 
+NAME_BONUS = ircserv_bonus
+
+BOT = dealer
+
 SRC_LIST = main.cpp \
 			Server.cpp \
 			Client.cpp \
@@ -33,9 +37,11 @@ CXX = c++
 CXXFLAGS = -g -std=c++98# -Wall -Werror -Wextra 
 RM = rm -rf
 
+.PHONY: all bonus clean fclean re
+
 all: $(NAME)
 
-$(NAME): $(BIN) $(LIBFT)
+$(NAME): $(BIN)
 	$(CXX) $(CXXFLAGS) $(BIN) -o $(NAME)
 
 $(BIN_DIR)%.o: $(SRC_DIR)%.cpp | $(BIN_DIR)
@@ -43,6 +49,14 @@ $(BIN_DIR)%.o: $(SRC_DIR)%.cpp | $(BIN_DIR)
 
 $(BIN_DIR):
 	mkdir $(BIN_DIR)
+
+bonus: $(NAME_BONUS) $(BOT)
+
+$(NAME_BONUS): $(BIN_BONUS)%.cpp | $(BIN_DIR_BONUS)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(BOT): $(BOT_BIN)%.cpp | $(BOT_BIN_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	$(RM) $(BIN_DIR)
