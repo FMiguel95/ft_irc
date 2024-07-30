@@ -182,6 +182,11 @@ int Server::runServer()
 					i--;
 					continue;
 				}
+				if (bytesRead == 1024 && buffer[1023] != '\0')
+				{
+					buffer[1022] = '\n';
+					buffer[1023] = '\0';
+				}
 				std::string clientMessage = std::string(buffer, 0, bytesRead);
 				receiveMessage(fds[i].fd, clientMessage);
 			}
@@ -234,9 +239,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	}
 	//std::cout << "buffer:" << client.messageBuffer << std::endl;
 }
-// PASS  123
-// NICK alguem    
-// USER wtf a   a        a
+
 t_message* Server::parseMessage(std::string& stream)
 {
 	// split the message with " " as delimiter
@@ -278,10 +281,10 @@ t_message* Server::parseMessage(std::string& stream)
 			*i = i->substr(1, i->length());
 		message.arguments[argIndex++] = *i;
 	}
-	std::cout << "struct prefix:" << message.prefix << std::endl;
-	std::cout << "struct command:" << message.command << std::endl;
-	for (size_t i = 0; i < 15; i++)
-		std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
+	// std::cout << "struct prefix:" << message.prefix << std::endl;
+	// std::cout << "struct command:" << message.command << std::endl;
+	// for (size_t i = 0; i < 15; i++)
+	// 	std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
 
 	if (message.command.empty())
 		return NULL;
