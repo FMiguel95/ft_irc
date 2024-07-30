@@ -9,6 +9,6 @@ int main(int ac, char** av)
 		return 1;
 	}
 
-	Bot bot;
+	Bot bot(av[1], std::atoi(av[2]), av[3]);
 	return bot.runBot();
 }
