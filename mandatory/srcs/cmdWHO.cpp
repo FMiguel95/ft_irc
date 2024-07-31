@@ -13,7 +13,11 @@ void Server::cmdWHO(const int& socket, const t_message* message)
 	
 	if (message->arguments[0].empty())
 	{
-		// implementar quando nao tem parametros - listar todos os users que nao tem canal em comum com o user
+		// list everyone
+		for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+		{
+			sendMessage(socket, std::string(":") + serverHostname + " " + RPL_WHOREPLY + " " + it->second.nick + " * " + it->second.user + " " + it->second.hostname + " " + serverHostname + " " + it->second.nick + " H :0 " + it->second.realname + "\r\n");
+		}
 		sendMessage(socket, std::string(":") + serverHostname + " " + RPL_ENDOFWHO + " " + client.nick + " :End of /WHO list\r\n");
 		return;
 	}
