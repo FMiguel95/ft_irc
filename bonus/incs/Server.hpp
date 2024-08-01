@@ -23,7 +23,7 @@
 //#define SERVER_ADDRESS			"localhost"
 #define SERVER_NAME				"ft_irc"
 
-#define TIMEOUT_TIME			60
+#define TIMEOUT_TIME			10
 #define PING_TIMEOUT_TIME		60
 
 #define RPL_WELCOME				"001"

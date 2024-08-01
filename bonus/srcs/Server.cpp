@@ -234,9 +234,7 @@ void Server::receiveMessage(const int& socket, std::string& stream)
 	}
 	//std::cout << "buffer:" << client.messageBuffer << std::endl;
 }
-// PASS  123
-// NICK alguem    
-// USER wtf a   a        a
+
 t_message* Server::parseMessage(std::string& stream)
 {
 	// split the message with " " as delimiter
@@ -402,7 +400,7 @@ void Server::checkTimeouts(std::vector<pollfd>& fds)
 		if (client.isRegistered && diff > TIMEOUT_TIME && client.pendingPong == false)
 		{
 			// ping the client
-			sendMessage(client.socket, std::string(":") + serverHostname + " PING\n\r");
+			sendMessage(client.socket, std::string(":") + serverHostname + " PING\r\n");
 			client.updatePingTime();
 			client.pendingPong = true;
 		}
