@@ -1,4 +1,12 @@
 #include "../incs/Bot.hpp"
+#include <csignal>
+
+
+static void handle_sigint(int signal)
+{
+	if (signal == SIGINT)
+		Bot::run = false;
+}
 
 int main(int ac, char** av)
 {
@@ -9,6 +17,7 @@ int main(int ac, char** av)
 		return 1;
 	}
 
+	std::signal(SIGINT, handle_sigint);
 	Bot bot(av[1], std::atoi(av[2]), av[3]);
 	return bot.runBot();
 }

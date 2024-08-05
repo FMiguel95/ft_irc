@@ -5,6 +5,8 @@
 #include <arpa/inet.h> // for inet_addr
 #include <netdb.h> // for gethostbyname
 
+bool Bot::run = false;
+
 Bot::Bot() {}
 
 Bot::Bot(const std::string &serverAddress, int serverPort, const std::string &serverPassword) :
@@ -73,6 +75,11 @@ int Bot::runBot()
 		return -1;
 	}
 
+	struct timeval tv;
+	tv.tv_sec = 1;  // seconds
+	tv.tv_usec = 0; // microseconds
+	setsockopt(_clientSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+
 	// Define server address
 	sockaddr_in server_address;
 	memset(&server_address, 0, sizeof(server_address)); // Zero out the structure
@@ -113,16 +120,26 @@ int Bot::runBot()
 		return -1;
 
 	// Loop to receive messages from the server
-	char buffer[1024];
-	while (true)
+	run = true;
+	while (run)
 	{
+		char buffer[1024];
 		memset(buffer, 0, sizeof(buffer)); // Clear buffer
 		int bytes_received = recv(_clientSocket, buffer, sizeof(buffer), 0);
 		if (bytes_received > 0)
 		{
-			std::cout << "bytes_received: " << bytes_received << std::endl;
-			std::cout << "buffer: " << buffer << std::endl;
-			std::string serverMessage = std::string(buffer, sizeof(buffer));
+			// std::cout << "bytes_received:" << bytes_received << std::endl;
+			std::string serverMessage;
+			if (bytes_received == 1024 && buffer[1023] != '\0')
+			{
+				char* newBuffer = new char[1025];
+				std::memcpy(newBuffer, buffer, 1024);
+				newBuffer[1024] = '\0';
+				serverMessage = std::string(buffer, sizeof(buffer));
+				delete[](newBuffer);
+			}
+			else
+				serverMessage = std::string(buffer, sizeof(buffer));
 			receiveMessage(serverMessage);
 		}
 		else if (bytes_received == 0)
@@ -132,6 +149,8 @@ int Bot::runBot()
 		}
 		else
 		{
+			if (errno == EAGAIN || errno == EINTR)
+				continue;
 			std::cerr << RED << "Error receiving data: " << RESET << strerror(errno) << std::endl;
 			break;
 		}
