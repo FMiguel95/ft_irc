@@ -10,7 +10,9 @@
 
 static void handle_sigint(int signal)
 {
-	if (signal == SIGINT)
+	std::ofstream new_file("test.txt");
+	new_file << signal << std::endl;
+	if (signal == SIGINT || signal == SIGHUP || signal == SIGTERM)
 		Server::run = false;
 }
 
@@ -49,6 +51,8 @@ int main(int ac, char** av)
 	std::string password = av[2];
 
 	std::signal(SIGINT, handle_sigint);
+	std::signal(SIGHUP, handle_sigint);
+	std::signal(SIGTERM, handle_sigint);
 	Server server(port, password);
 	return server.runServer();
 }

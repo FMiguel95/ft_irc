@@ -139,7 +139,10 @@ int Bot::runBot()
 				delete[](newBuffer);
 			}
 			else
+			{
+				buffer[bytes_received] = '\0';
 				serverMessage = std::string(buffer, sizeof(buffer));
+			}
 			receiveMessage(serverMessage);
 		}
 		else if (bytes_received == 0)
@@ -162,6 +165,7 @@ int Bot::runBot()
 
 void Bot::receiveMessage(std::string& stream)
 {
+	std::cout << "receiveMessage len:" << stream.length() << std::endl;
 	_messageBuffer += stream;
 	size_t pos;
 	while ((pos = _messageBuffer.find_first_of("\r\n")) != std::string::npos)
@@ -172,6 +176,8 @@ void Bot::receiveMessage(std::string& stream)
 		else
 			_messageBuffer.erase(0, pos + 1);
 		std::cout << "\001\e[0;92m" << "Received: " << "\e[0m\002" << message << std::endl;
+		
+		std::cout << "message crop len:" << message.length() << std::endl;
 		if (parseMessage(message))
 			handleMessage(&this->message);
 	}
@@ -180,17 +186,30 @@ void Bot::receiveMessage(std::string& stream)
 
 t_message* Bot::parseMessage(std::string& stream)
 {
+	std::cout << "parseMessage>>" << stream << "<<" << std::endl;
+	std::cout << "parseMessage len:" << stream.length() << std::endl;
 	// split the message with " " as delimiter
 	std::vector<std::string> split;
 	size_t start = stream.find_first_not_of(" ", 0);
 	size_t end;
 	while (start != std::string::npos && (end = stream.find(" ", start)) != std::string::npos && split.size() < 15 && !(stream[start] == ':' && split.size() > 1))
 	{
+		std::cout << "start:" << start << " end:" << end << std::endl;
 		split.push_back(stream.substr(start, end - start));
+		std::cout << "pushed>>" << stream.substr(start, end - start) << "<<" << std::endl;
 		start = stream.find_first_not_of(" ", end + 1);
 	}
 	if (start != std::string::npos)
+	{
 		split.push_back(stream.substr(start));
+		std::cout << "pushed>>" << stream.substr(start) << "<<" << std::endl;
+	}
+
+	//the split
+	for (std::vector<std::string>::iterator i = split.begin(); i != split.end(); ++i)
+	{
+		std::cout << "split>>" << *i << "<<" << " len:" << i->length() << std::endl;
+	}
 
 	// initialize struct
 	message.raw = stream;
@@ -201,10 +220,15 @@ t_message* Bot::parseMessage(std::string& stream)
 	int argIndex = 0;
 	for (std::vector<std::string>::iterator i = split.begin(); i != split.end(); ++i)
 	{
-		// std::cout << *i << std::endl;
+		std::cout << "*i>" << *i << "<" << std::endl;
+		std::cout << "i->length()>" << i->length() << "<" << std::endl;
+		std::cout << "(*i)[0]>" << (*i)[0] << "<" << std::endl;
+		std::cout << "(*i)[1]>" << (*i)[1] << "<" << std::endl;
+		std::cout << "(*i)[2]>" << (*i)[2] << "<" << std::endl;
 		// set prefix if first word starts with :
 		if (i == split.begin() && (*i)[0] == ':')
 		{
+			std::cout << "found prefix:" << *i << std::endl;
 			//message.prefix = *i;
 			message.prefix = i->substr(1, i->length());
 			continue;
@@ -219,10 +243,10 @@ t_message* Bot::parseMessage(std::string& stream)
 			*i = i->substr(1, i->length());
 		message.arguments[argIndex++] = *i;
 	}
-	// std::cout << "struct prefix:" << message.prefix << std::endl;
-	// std::cout << "struct command:" << message.command << std::endl;
-	// for (size_t i = 0; i < 15; i++)
-	// 	std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
+	std::cout << "struct prefix:" << message.prefix << std::endl;
+	std::cout << "struct command:" << message.command << std::endl;
+	for (size_t i = 0; i < 15; i++)
+		std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
 
 	if (message.command.empty())
 		return NULL;
@@ -232,10 +256,7 @@ t_message* Bot::parseMessage(std::string& stream)
 void Bot::handleMessage(t_message* message)
 {
 	if (!message)
-	{
-		//sendMessage("GARBAGE\r\n");
 		return;
-	}
 	for (int i = 0; message->command[i]; i++)
 		message->command[i] = std::toupper(message->command[i]);
 
