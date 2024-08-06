@@ -53,9 +53,9 @@ Bot& Bot::operator =(const Bot& src)
 	return *this;
 }
 
-int Bot::sendMessage(const char *message)
+int Bot::sendMessage(const std::string& message)
 {
-	if (send(_clientSocket, message, strlen(message), 0) < 0)
+	if (send(_clientSocket, message.c_str(), message.length(), 0) < 0)
 	{
 		std::cerr << RED << "Error sending message: " << RESET << strerror(errno) << std::endl;
 		close(_clientSocket); // Close the socket before returning
@@ -124,24 +124,24 @@ int Bot::runBot()
 	while (run)
 	{
 		char buffer[1024];
-		memset(buffer, 0, sizeof(buffer)); // Clear buffer
+		std::memset(buffer, '\0', 1024);
 		int bytes_received = recv(_clientSocket, buffer, sizeof(buffer), 0);
+		// std::cout << "bytes_received:" << bytes_received << std::endl;
 		if (bytes_received > 0)
 		{
-			// std::cout << "bytes_received:" << bytes_received << std::endl;
 			std::string serverMessage;
 			if (bytes_received == 1024 && buffer[1023] != '\0')
 			{
 				char* newBuffer = new char[1025];
 				std::memcpy(newBuffer, buffer, 1024);
 				newBuffer[1024] = '\0';
-				serverMessage = std::string(buffer, sizeof(buffer));
+				serverMessage = std::string(buffer, bytes_received);
 				delete[](newBuffer);
 			}
 			else
 			{
 				buffer[bytes_received] = '\0';
-				serverMessage = std::string(buffer, sizeof(buffer));
+				serverMessage = std::string(buffer, bytes_received);
 			}
 			receiveMessage(serverMessage);
 		}
@@ -165,7 +165,6 @@ int Bot::runBot()
 
 void Bot::receiveMessage(std::string& stream)
 {
-	std::cout << "receiveMessage len:" << stream.length() << std::endl;
 	_messageBuffer += stream;
 	size_t pos;
 	while ((pos = _messageBuffer.find_first_of("\r\n")) != std::string::npos)
@@ -177,39 +176,24 @@ void Bot::receiveMessage(std::string& stream)
 			_messageBuffer.erase(0, pos + 1);
 		std::cout << "\001\e[0;92m" << "Received: " << "\e[0m\002" << message << std::endl;
 		
-		std::cout << "message crop len:" << message.length() << std::endl;
 		if (parseMessage(message))
 			handleMessage(&this->message);
 	}
-	//std::cout << "buffer:" << client.messageBuffer << std::endl;
+	// std::cout << "buffer:" << _messageBuffer << std::endl;
 }
 
 t_message* Bot::parseMessage(std::string& stream)
 {
-	std::cout << "parseMessage>>" << stream << "<<" << std::endl;
-	std::cout << "parseMessage len:" << stream.length() << std::endl;
-	// split the message with " " as delimiter
 	std::vector<std::string> split;
 	size_t start = stream.find_first_not_of(" ", 0);
 	size_t end;
 	while (start != std::string::npos && (end = stream.find(" ", start)) != std::string::npos && split.size() < 15 && !(stream[start] == ':' && split.size() > 1))
 	{
-		std::cout << "start:" << start << " end:" << end << std::endl;
 		split.push_back(stream.substr(start, end - start));
-		std::cout << "pushed>>" << stream.substr(start, end - start) << "<<" << std::endl;
 		start = stream.find_first_not_of(" ", end + 1);
 	}
 	if (start != std::string::npos)
-	{
 		split.push_back(stream.substr(start));
-		std::cout << "pushed>>" << stream.substr(start) << "<<" << std::endl;
-	}
-
-	//the split
-	for (std::vector<std::string>::iterator i = split.begin(); i != split.end(); ++i)
-	{
-		std::cout << "split>>" << *i << "<<" << " len:" << i->length() << std::endl;
-	}
 
 	// initialize struct
 	message.raw = stream;
@@ -220,16 +204,8 @@ t_message* Bot::parseMessage(std::string& stream)
 	int argIndex = 0;
 	for (std::vector<std::string>::iterator i = split.begin(); i != split.end(); ++i)
 	{
-		std::cout << "*i>" << *i << "<" << std::endl;
-		std::cout << "i->length()>" << i->length() << "<" << std::endl;
-		std::cout << "(*i)[0]>" << (*i)[0] << "<" << std::endl;
-		std::cout << "(*i)[1]>" << (*i)[1] << "<" << std::endl;
-		std::cout << "(*i)[2]>" << (*i)[2] << "<" << std::endl;
-		// set prefix if first word starts with :
 		if (i == split.begin() && (*i)[0] == ':')
 		{
-			std::cout << "found prefix:" << *i << std::endl;
-			//message.prefix = *i;
 			message.prefix = i->substr(1, i->length());
 			continue;
 		}
@@ -243,10 +219,10 @@ t_message* Bot::parseMessage(std::string& stream)
 			*i = i->substr(1, i->length());
 		message.arguments[argIndex++] = *i;
 	}
-	std::cout << "struct prefix:" << message.prefix << std::endl;
-	std::cout << "struct command:" << message.command << std::endl;
-	for (size_t i = 0; i < 15; i++)
-		std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
+	// std::cout << "struct prefix:" << message.prefix << std::endl;
+	// std::cout << "struct command:" << message.command << std::endl;
+	// for (size_t i = 0; i < 15; i++)
+	// 	std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
 
 	if (message.command.empty())
 		return NULL;
@@ -262,4 +238,8 @@ void Bot::handleMessage(t_message* message)
 
 	if (message->command == "PING")
 		sendMessage("PONG\r\n");
+	else if (message->command == "INVITE")
+		sendMessage(std::string("JOIN ") + message->arguments[1] + "\r\n");
+	else if (message->command == "PRIVMSG")
+		sendMessage(std::string("NOTICE ") + message->arguments[0] + " :bot release TBA\r\n");
 }

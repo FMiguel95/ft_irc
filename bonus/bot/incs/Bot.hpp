@@ -54,7 +54,7 @@ private:
 	t_message message;
 	std::vector<std::string> _filteredWords;
 
-	int sendMessage(const char *message);
+	int sendMessage(const std::string& message);
 
 	void receiveMessage(std::string& stream);
 

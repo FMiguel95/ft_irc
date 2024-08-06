@@ -204,7 +204,6 @@ int Server::runServer()
 void Server::sendMessage(const int& socket, const std::string& message)
 {
 	std::cout << "\001\e[0;93m" << "Sending to socket " << socket << ": " << "\e[0m\002" << message;
-	std::cout << "message[0]>" << (int)(message[0]) << "<" << std::endl;	
 	send(socket, message.c_str(), message.size(), 0);
 }
 
