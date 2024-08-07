@@ -5,7 +5,7 @@
 // Parameters: <channel> *( "," <channel> ) [ <Part Message> ]
 void Server::cmdPART(const int& socket, const t_message* message)
 {
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validar se o user esta registado
 	if (!client.isRegistered)
@@ -14,7 +14,7 @@ void Server::cmdPART(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " PART :Not enough parameters\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " PART :Not enough parameters\r\n");
 		return;
 	}
 
@@ -37,7 +37,7 @@ void Server::cmdPART(const int& socket, const t_message* message)
 		if (!channel)
 		{
 			// reply ERR_NOSUCHCHANNEL
-			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + *i + " :No such channel\r\n");
+			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + *i + " :No such channel\r\n");
 			continue;
 		}
 		// validate the client is in the channel
@@ -45,7 +45,7 @@ void Server::cmdPART(const int& socket, const t_message* message)
 		if (clientInChannel == channel->userList.end())
 		{
 			// reply ERR_NOTONCHANNEL
-			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + *i + " :You're not on that channel\r\n");
+			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + *i + " :You're not on that channel\r\n");
 			continue;
 		}
 		sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " PART " + channel->channelName + " :" + message->arguments[1] + "\r\n");
@@ -65,11 +65,11 @@ void Server::cmdPART(const int& socket, const t_message* message)
 		// if the channel is empty, remove it
 		if (channel->userList.empty())
 		{
-			for (std::list<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+			for (std::list<Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 			{
 				if (it->channelName == channel->channelName)
 				{
-					channels.erase(it);
+					_channels.erase(it);
 					break;
 				}
 			}

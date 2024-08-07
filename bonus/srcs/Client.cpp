@@ -84,19 +84,3 @@ void Client::updatePingTime()
 {
 	_lastPingTime = std::time(NULL);
 }
-
-std::string Client::getUserInfo(char choice) const
-{
-	std::string info;
-	if (choice == 'n')
-		info = nick;
-	else if (choice == 'u')
-		info = user;
-	else if (choice == 'h')
-		info = hostname;
-	else if (choice == 'r')
-		info = realname;
-	else
-		info = "Invalid choice";
-	return (info);
-}

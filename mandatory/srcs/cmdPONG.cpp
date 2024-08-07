@@ -6,7 +6,7 @@
 void Server::cmdPONG(const int& socket, const t_message* message)
 {
 	(void)message;
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validate if the user is registered
 	if (!client.isRegistered)

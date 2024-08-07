@@ -30,6 +30,8 @@ Bot::Bot(const std::string &serverAddress, int serverPort, const std::string &se
 		}
 		file.close();
 	}
+	//for (std::vector<std::string>::iterator it = _filteredWords.begin(); it != _filteredWords.end(); ++it)
+		//std::cout << "Filtered word: " << *it << std::endl;
 }
 
 Bot::Bot(const Bot& src) :
@@ -177,7 +179,7 @@ void Bot::receiveMessage(std::string& stream)
 		std::cout << "\001\e[0;92m" << "Received: " << "\e[0m\002" << message << std::endl;
 		
 		if (parseMessage(message))
-			handleMessage(&this->message);
+			handleMessage(&this->_message);
 	}
 	// std::cout << "buffer:" << _messageBuffer << std::endl;
 }
@@ -196,37 +198,55 @@ t_message* Bot::parseMessage(std::string& stream)
 		split.push_back(stream.substr(start));
 
 	// initialize struct
-	message.raw = stream;
-	message.prefix.clear();
-	message.command.clear();
+	_message.raw = stream;
+	_message.prefix.clear();
+	_message.command.clear();
 	for (size_t i = 0; i < 15; i++)
-		message.arguments[i].clear();
+		_message.arguments[i].clear();
 	int argIndex = 0;
 	for (std::vector<std::string>::iterator i = split.begin(); i != split.end(); ++i)
 	{
 		if (i == split.begin() && (*i)[0] == ':')
 		{
-			message.prefix = i->substr(1, i->length());
+			_message.prefix = i->substr(1, i->length());
 			continue;
 		}
 		// set command if first word doesnt start with : or if second word and prefix was already set
-		if ((i == split.begin() && (*i)[0] != ':') || (i - 1 == split.begin() && !message.prefix.empty()))
+		if ((i == split.begin() && (*i)[0] != ':') || (i - 1 == split.begin() && !_message.prefix.empty()))
 		{
-			message.command = *i;
+			_message.command = *i;
 			continue;
 		}
 		if ((*i)[0] == ':')
 			*i = i->substr(1, i->length());
-		message.arguments[argIndex++] = *i;
+		_message.arguments[argIndex++] = *i;
 	}
 	// std::cout << "struct prefix:" << message.prefix << std::endl;
 	// std::cout << "struct command:" << message.command << std::endl;
 	// for (size_t i = 0; i < 15; i++)
 	// 	std::cout << "struct arg " << i << ":" << message.arguments[i] << std::endl;
 
-	if (message.command.empty())
+	if (_message.command.empty())
 		return NULL;
-	return &message;
+	return &_message;
+}
+
+void Bot::scanMessage(t_message* message)
+{
+	if (!message)
+		return;
+	for (int i = 0; message->arguments[i].length(); i++)
+	{
+		for (std::vector<std::string>::iterator it = _filteredWords.begin(); it != _filteredWords.end(); ++it)
+		{
+			if (message->arguments[i].find(*it) != std::string::npos)
+			{
+				std::string nick = message->prefix.substr(0, message->prefix.find("!"));
+				sendMessage("KICK " + message->arguments[0] + " " + nick + " :Word " + *it + " is not allowed here!\r\n");
+				return;
+			}
+		}
+	}
 }
 
 void Bot::handleMessage(t_message* message)
@@ -239,7 +259,10 @@ void Bot::handleMessage(t_message* message)
 	if (message->command == "PING")
 		sendMessage("PONG\r\n");
 	else if (message->command == "INVITE")
+	{
 		sendMessage(std::string("JOIN ") + message->arguments[1] + "\r\n");
+		sendMessage("PRIVMSG " + message->arguments[1] + " :Hello! I'm a word filter bot! Give me operator status and I will kick users who use bad words!\r\n");
+	}
 	else if (message->command == "PRIVMSG")
-		sendMessage(std::string("NOTICE ") + message->arguments[0] + " :bot release TBA\r\n");
+		scanMessage(message);
 }

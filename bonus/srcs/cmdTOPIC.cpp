@@ -5,7 +5,7 @@
 // Parameters: <channel> [ <topic> ]
 void Server::cmdTOPIC(const int& socket, const t_message* message)
 {
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validar se o user esta registado
 	if (!client.isRegistered)
@@ -15,7 +15,7 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " TOPIC :Not enough parameters\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " TOPIC :Not enough parameters\r\n");
 		return;
 	}
 
@@ -24,7 +24,7 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 	if (!channel)
 	{
 		// reply ERR_NOSUCHCHANNEL
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
 		return;
 	}
 
@@ -33,7 +33,7 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 	if (userInChannel == channel->userList.end())
 	{
 		// reply ERR_NOTONCHANNEL
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + message->arguments[0] + " :You're not on that channel\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + message->arguments[0] + " :You're not on that channel\r\n");
 		return;
 	}
 
@@ -43,9 +43,9 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 		//std::cout << "empty topic:" << message->raw[message->raw.length() - 1] << std::endl;
 		// reply RPL_TOPIC ou RPL_NOTOPIC se não existir
 		if (channel->topic.empty())
-			sendMessage(socket, std::string(":") + serverHostname + " " + RPL_NOTOPIC + " " + client.nick + " " + channel->channelName + " :No topic is set\r\n");
+			sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_NOTOPIC + " " + client.nick + " " + channel->channelName + " :No topic is set\r\n");
 		else
-			sendMessage(socket, std::string(":") + serverHostname + " " + RPL_TOPIC + " " + client.nick + " " + channel->channelName + " :" + channel->topic + "\r\n");
+			sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_TOPIC + " " + client.nick + " " + channel->channelName + " :" + channel->topic + "\r\n");
 		return;
 	}
 
@@ -53,7 +53,7 @@ void Server::cmdTOPIC(const int& socket, const t_message* message)
 	if (channel->channelMode & MODE_t && !(userInChannel->second & MODE_o))
 	{
 		// reply ERR_CHANOPRIVSNEEDED
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + channel->channelName + " :You're not channel operator\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + channel->channelName + " :You're not channel operator\r\n");
 		return;
 	}
 

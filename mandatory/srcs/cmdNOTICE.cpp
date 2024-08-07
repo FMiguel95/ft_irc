@@ -5,7 +5,7 @@
 // Parameters: <msgtarget> <text to be sent>
 void Server::cmdNOTICE(const int& socket, const t_message* message)
 {
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validar se o user esta registado
 	if (!client.isRegistered)

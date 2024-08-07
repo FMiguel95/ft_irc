@@ -17,15 +17,16 @@
 #include <arpa/inet.h>
 #include <poll.h>
 
-#define YELLOW "\033[33m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
-#define RESET "\033[0m"
+#define YELLOW	"\033[33m"
+#define RED		"\033[31m"
+#define GREEN	"\033[32m"
+#define RESET	"\033[0m"
 
-#define NICK "the_bot"
-#define USER "somebot 0 * :I'm a word filter bot!"
+#define NICK	"the_bot"
+#define USER	"somebot 0 * :I'm a word filter bot!"
 
-typedef struct {
+typedef struct
+{
 	std::string raw;
 	std::string prefix;
 	std::string command;
@@ -34,37 +35,32 @@ typedef struct {
 
 class Bot
 {
-public:
-	static bool run;
+	public:
+		static bool run;
 
-	Bot(const std::string &serverAddress, int serverPort, const std::string &serverPassword);
-	Bot(const Bot& src);
-	~Bot();
-	Bot& operator =(const Bot& src);
+		Bot(const std::string &serverAddress, int serverPort, const std::string &serverPassword);
+		Bot(const Bot& src);
+		~Bot();
+		
+		Bot& operator =(const Bot& src);
 
-	int runBot();
+		int	runBot();
 
-private:
-	int _clientSocket;
-	std::string	_serverAddress;
-	int			_serverPort;
-	std::string	_serverPassword;
+	private:
+		int							_clientSocket;
+		std::string					_serverAddress;
+		int							_serverPort;
+		std::string					_serverPassword;
 
-	std::string _messageBuffer;
-	t_message message;
-	std::vector<std::string> _filteredWords;
+		std::string					_messageBuffer;
+		t_message					_message;
+		std::vector<std::string>	_filteredWords;
 
-	int sendMessage(const std::string& message);
-
-	void receiveMessage(std::string& stream);
-
-	// faz parse à string
-	// retira o prefix, command e args e passa para um struct
-	// retorna nulo se for invalido
-	t_message* parseMessage(std::string& stream);
-
-	// decide o que fazer com a mensagem resultante
-	void handleMessage(t_message* message);
-	
-	Bot();
+		int			sendMessage(const std::string& message);
+		void		receiveMessage(std::string& stream);
+		t_message*	parseMessage(std::string& stream);
+		void		handleMessage(t_message* message);
+		void		scanMessage(t_message* message);
+		
+		Bot();
 };

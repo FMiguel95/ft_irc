@@ -21,22 +21,22 @@ enum UserMode
 
 class Channel
 {
-public:
-	std::string channelName;
-	std::string channelKey;
-	std::string topic;
-	int userLimit;
-	char channelMode; // each bit corresponds to a flag as set in enum ChannelMode
-	std::map<Client*,char> userList; // key: pointer to the client, value: user mode flags
-	std::list<Client*> invitedUsers;
+	public:
+		std::string	channelName;
+		std::string	channelKey;
+		std::string	topic;
+		int			userLimit;
+		char		channelMode; // each bit corresponds to a flag as set in enum ChannelMode
+		
+		std::map<Client*,char>	userList; // key: pointer to the client, value: user mode flags
+		std::list<Client*>		invitedUsers;
 
-	Channel(const std::string& name, const std::string& key);
-	Channel(const Channel& src);
-	~Channel();
-	Channel& operator =(const Channel& src);
+		Channel(const std::string& name, const std::string& key);
+		Channel(const Channel& src);
+		~Channel();
+		Channel& operator =(const Channel& src);
 
-	std::map<Client*,char>::iterator getClientInChannel(const std::string& nick);
-
-private:
-	Channel();
+		std::map<Client*,char>::iterator getClientInChannel(const std::string& nick);
+	private:
+		Channel();
 };

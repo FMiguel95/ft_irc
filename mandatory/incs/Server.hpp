@@ -101,15 +101,15 @@ public:
 	int runServer(); // will be called in main
 
 private:
-	int serverPort;
-	std::string serverPassword;
-	std::string serverHostname;
-	time_t serverCreationTime;
-	std::string messageOfTheDay;
-	bool hasMOTD;
-	std::map<int,Client> clients;	// socket/client pair
-	std::list<Channel> channels;	// list of channels
-	t_message message;
+	int _serverPort;
+	std::string _serverPassword;
+	std::string _serverHostname;
+	time_t _serverCreationTime;
+	std::string _messageOfTheDay;
+	bool _hasMOTD;
+	std::map<int,Client> _clients;	// socket/client pair
+	std::list<Channel> _channels;	// list of channels
+	t_message _message;
 
 	void getMOTD();
 

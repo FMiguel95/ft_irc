@@ -5,7 +5,7 @@
 // Parameters: [ <target> ] <mask> *( "," <mask> )
 void Server::cmdWHOIS(const int& socket, const t_message* message)
 {
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 	
 	// validar se o user esta registado
 	if (!client.isRegistered)
@@ -15,7 +15,7 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NONICKNAMEGIVEN
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NONICKNAMEGIVEN + " " + client.nick + " :No nickname given\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NONICKNAMEGIVEN + " " + client.nick + " :No nickname given\r\n");
 		return;
 	}
 
@@ -37,7 +37,7 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 	if (target == NULL)
 	{
 		// reply ERR_NOSUCHNICK
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
 		return;
 	
 	}
@@ -45,17 +45,17 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 	// if its successful:
 
 	// RPL_WHOISUSER
-	sendMessage(socket, std::string(":") + serverHostname + " " + RPL_WHOISUSER + " " + client.nick + " " + target->nick + " " + target->user + " " + target->hostname + " * :" + target->realname + "\r\n");
+	sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_WHOISUSER + " " + client.nick + " " + target->nick + " " + target->user + " " + target->hostname + " * :" + target->realname + "\r\n");
 	
 	// RPL_WHOISSERVER
-	sendMessage(socket, std::string(":") + serverHostname + " " + RPL_WHOISSERVER + " " + client.nick + " " + target->nick + " " + serverHostname + " :A very cool server\r\n");
+	sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_WHOISSERVER + " " + client.nick + " " + target->nick + " " + _serverHostname + " :A very cool server\r\n");
 	
 	// RPL_WHOISHOST
-	sendMessage(socket, std::string(":") + serverHostname + " " + RPL_WHOISHOST + " " + client.nick + " " + target->nick + " :is connecting from " + target->userAtHost + "\r\n");
+	sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_WHOISHOST + " " + client.nick + " " + target->nick + " :is connecting from " + target->userAtHost + "\r\n");
 	
 	// RPL_WHOISCHANNELS: will show the channels the user is in
 	std::string channelList;
-	for (std::list<Channel>::iterator it1 = channels.begin(); it1 != channels.end(); ++it1)
+	for (std::list<Channel>::iterator it1 = _channels.begin(); it1 != _channels.end(); ++it1)
 	{
 		for (std::map<Client*,char>::iterator it2 = it1->userList.begin(); it2 != it1->userList.end(); ++it2)
 		{
@@ -63,10 +63,10 @@ void Server::cmdWHOIS(const int& socket, const t_message* message)
 				channelList += it1->channelName + " ";
 		}
 	}
-	sendMessage(socket, std::string(":") + serverHostname + " " + RPL_WHOISCHANNELS + " " + client.nick + " " + target->nick + " :" + channelList + "\r\n");
+	sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_WHOISCHANNELS + " " + client.nick + " " + target->nick + " :" + channelList + "\r\n");
 
 	// reply RPL_ENDOFWHOIS
-	sendMessage(socket, std::string(":") + serverHostname + " " + RPL_ENDOFWHOIS + " " + client.nick + " " + target->nick + " :End of WHOIS list\r\n");
+	sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_ENDOFWHOIS + " " + client.nick + " " + target->nick + " :End of WHOIS list\r\n");
 	
 	// RPL_WHOISIDLE -LATER
 	//sendMessage(socket, std::string(":") + serverHostname + " " + RPL_WHOISIDLE + " " + client.nick + " " + target->nick + " " + target->getTimeSinceLastActivity() + " 0 :seconds idle, signon time\r\n");

@@ -7,7 +7,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 {
 	// obs.: HORSE says one channel, multiple users. RFC 2812 says multiple channels, multiple users. I went with the HORSE version.
 
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validar se o user esta registado
 	if (!client.isRegistered)
@@ -17,7 +17,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	if (message->arguments[0].empty() || message->arguments[1].empty())
 	{
 		// reply ERR_NEEDMOREPARAMS
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " KICK :Not enough parameters\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " KICK :Not enough parameters\r\n");
 		return;
 	}
 
@@ -26,7 +26,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	if (channel == NULL)
 	{
 		// reply ERR_NOSUCHCHANNEL
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
 		return;
 	}
 
@@ -35,7 +35,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	if (clientInChannel == channel->userList.end())
 	{
 		// reply ERR_NOTONCHANNEL
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + message->arguments[0] + " :You're not on that channel\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + message->arguments[0] + " :You're not on that channel\r\n");
 		return;
 	}
 	
@@ -43,7 +43,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	if (!(clientInChannel->second & MODE_o))
 	{
 		// reply ERR_CHANOPRIVSNEEDED
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + message->arguments[0] + " :You're not channel operator\r\n");	
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + message->arguments[0] + " :You're not channel operator\r\n");	
 		return;
 	}
 
@@ -70,7 +70,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 		{
 			std::cout << "RPL ERR_USERNOTINCHANNEL" << std::endl;
 			// reply ERR_USERNOTINCHANNEL
-			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
+			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
 			return;
 		}
 		targetInChannel = channel->getClientInChannel(target->nick);
@@ -78,7 +78,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 		{
 			std::cout << "RPL ERR_USERNOTINCHANNEL" << std::endl;
 			// reply ERR_USERNOTINCHANNEL
-			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
+			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
 			return;
 		}
 	}
@@ -111,11 +111,11 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	// if the channel is empty, remove it
 	if (channel->userList.empty())
 	{
-		for (std::list<Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+		for (std::list<Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 		{
 			if (it->channelName == channel->channelName)
 			{
-				channels.erase(it);
+				_channels.erase(it);
 				break;
 			}
 		}

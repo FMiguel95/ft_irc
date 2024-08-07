@@ -5,7 +5,7 @@
 // Parameters: [ <Quit Message> ]
 void Server::cmdQUIT(const int& socket, const t_message* message)
 {
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validar se o user esta registado
 	if (!client.isRegistered)
@@ -16,5 +16,5 @@ void Server::cmdQUIT(const int& socket, const t_message* message)
 		reason = "Client Quit";
 	sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " QUIT :" + reason + "\r\n");
 	unregisterClient(client, reason);
-	sendMessage(socket, std::string(":") + serverHostname + " ERROR :Closing link\r\n");
+	sendMessage(socket, std::string(":") + _serverHostname + " ERROR :Closing link\r\n");
 }

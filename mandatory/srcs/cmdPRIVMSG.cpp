@@ -5,7 +5,7 @@
 // Parameters: <msgtarget> <text to be sent>
 void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 {
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validar se o user esta registado
 	if (!client.isRegistered)
@@ -15,14 +15,14 @@ void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NORECIPIENT
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NORECIPIENT + " " + client.nick + " PRIVMSG :No recipient given (PRIVMSG)\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NORECIPIENT + " " + client.nick + " PRIVMSG :No recipient given (PRIVMSG)\r\n");
 		return;
 	}
 	// validar se tem conteudo
 	if (message->arguments[1].empty())
 	{
 		// reply ERR_NOTEXTTOSEND
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOTEXTTOSEND + " " + client.nick + " :No text to send\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOTEXTTOSEND + " " + client.nick + " :No text to send\r\n");
 		return;
 	}
 	// se enviar para um canal
@@ -44,7 +44,7 @@ void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 			}
 		}
 		// reply ERR_CANNOTSENDTOCHAN
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_CANNOTSENDTOCHAN + " " + client.nick + " " + message->arguments[0] + " :Cannot send to channel\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_CANNOTSENDTOCHAN + " " + client.nick + " " + message->arguments[0] + " :Cannot send to channel\r\n");
 		return;
 	}
 	// se enviar para outro user
@@ -54,7 +54,7 @@ void Server::cmdPRIVMSG(const int& socket, const t_message* message)
 		if (!recipient)
 		{
 			// reply ERR_NOSUCHNICK
-			sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
+			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOSUCHNICK + " " + client.nick + " " + message->arguments[0] + " :No such nick/channel\r\n");
 			return;
 		}
 		// enviar mensagem para o user

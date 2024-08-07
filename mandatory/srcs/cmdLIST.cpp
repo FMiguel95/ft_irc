@@ -5,7 +5,7 @@
 // Parameters: [ <channel> *( "," <channel> ) [ <target> ] ]
 void Server::cmdLIST(const int& socket, const t_message* message)
 {
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validar se o user esta registado
 	if (!client.isRegistered)
@@ -13,14 +13,14 @@ void Server::cmdLIST(const int& socket, const t_message* message)
 	
 	if (message->arguments[0].empty()) // list every channel if no parameters
 	{
-		for (std::list<Channel>::iterator i = channels.begin(); i != channels.end(); ++i)
+		for (std::list<Channel>::iterator i = _channels.begin(); i != _channels.end(); ++i)
 		{
 			// reply RPL_LIST
 			std::ostringstream oss;
 			// if (i->topic.empty())
 			// 	oss << ":") + serverHostname + " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << "\r\n";
 			// else
-				oss << ":" << serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
+				oss << ":" << _serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
 			sendMessage(socket, oss.str());
 		}
 	}
@@ -38,17 +38,17 @@ void Server::cmdLIST(const int& socket, const t_message* message)
 		}
 		channelsSplit.push_back(message->arguments[0].substr(start));
 		
-		for (std::list<Channel>::iterator i = channels.begin(); i != channels.end(); ++i)
+		for (std::list<Channel>::iterator i = _channels.begin(); i != _channels.end(); ++i)
 		{
 			if (std::find(channelsSplit.begin(), channelsSplit.end(), i->channelName) != channelsSplit.end())
 			{
 				// reply RPL_LIST
 				std::ostringstream oss;
-				oss << ":" << serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
+				oss << ":" << _serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
 				sendMessage(socket, oss.str());
 			}
 		}
 	}
 	// reply RPL_LISTEND
-	sendMessage(socket, std::string(":") + serverHostname + " " + RPL_LISTEND + " " + client.nick + " :End of /LIST\r\n");
+	sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_LISTEND + " " + client.nick + " :End of /LIST\r\n");
 }

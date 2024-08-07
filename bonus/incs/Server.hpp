@@ -19,12 +19,10 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-
-//#define SERVER_ADDRESS			"localhost"
 #define SERVER_NAME				"ft_irc"
 
 #define TIMEOUT_TIME			10
-#define PING_TIMEOUT_TIME		60
+#define PING_TIMEOUT_TIME		10
 
 #define RPL_WELCOME				"001"
 #define RPL_YOURHOST			"002"
@@ -80,7 +78,8 @@
 // https://datatracker.ietf.org/doc/html/rfc2812#section-2.3
 // mensagens em irc são compostas por prefixo(opcional), comando, e argumentos (até 15)
 // todos separados por um space character
-typedef struct {
+typedef struct
+{
 	std::string raw;
 	std::string prefix;
 	std::string command;
@@ -89,151 +88,138 @@ typedef struct {
 
 class Server
 {
-public:
-	static bool run;
+	public:
+		static bool	run;
 
-	Server();
-	Server(const int& serverPort, const std::string& serverPassword);
-	Server(const Server& src);
-	~Server();
-	Server& operator =(const Server& src);
+		Server();
+		Server(const int& serverPort, const std::string& serverPassword);
+		Server(const Server& src);
+		~Server();
 
-	int runServer(); // will be called in main
+		Server& operator =(const Server& src);
 
-private:
-	int serverPort;
-	std::string serverPassword;
-	std::string serverHostname;
-	time_t serverCreationTime;
-	std::string messageOfTheDay;
-	bool hasMOTD;
-	std::map<int,Client> clients;	// socket/client pair
-	std::list<Channel> channels;	// list of channels
-	t_message message;
+		int runServer();
 
-	void getMOTD();
+	private:
+		int						_serverPort;
+		std::string				_serverPassword;
+		std::string				_serverHostname;
+		time_t					_serverCreationTime;
+		std::string				_messageOfTheDay;
+		bool					_hasMOTD;
+		std::map<int,Client>	_clients;
+		std::list<Channel>		_channels;
+		t_message				_message;
 
-	void getHostname();
+		void		getMOTD();
+		void		getHostname();
+		Channel*	getChannelByName(const std::string& name);
+		Client*		getClientByNick(const std::string& nick);
 
-	void sendMessage(const int& socket, const std::string& message);
+		void		sendMessage(const int& socket, const std::string& message);
+		void		broadcastMessage(Channel& channel, const std::string& message);
+		void		receiveMessage(const int& socket, std::string& stream);
+		t_message*	parseMessage(std::string& stream);
+		void		handleMessage(const int& socket, t_message* message);
 
-	void broadcastMessage(Channel& channel, const std::string& message);
+		bool		isChannelNameValid(const std::string& name) const;
 
-	// recebe uma mensagem de um client e adiciona ao buffer - adicionar à lista de clients se ainda não existir?
-	// se detetar \r\n, construir um struct t_message e remover do buffer ao estilo gnl (sorry anna)
-	void receiveMessage(const int& socket, std::string& stream);
+		void		checkRegistration(Client& client);
 
-	// faz parse à string
-	// retira o prefix, command e args e passa para um struct
-	// retorna nulo se for invalido
-	t_message* parseMessage(std::string& stream);
+		void		unregisterClient(Client& client, const std::string& reason);
 
-	// decide o que fazer com a mensagem resultante
-	void handleMessage(const int& socket, t_message* message);
+		void		checkTimeouts(std::vector<pollfd>& fds);
+		
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
+		// Command: PASS
+		// Parameters: <password>
+		void cmdPASS(const int& socket, const t_message* message);
+		
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.2
+		// Command: NICK
+		// Parameters: <nickname>
+		void cmdNICK(const int& socket, const t_message* message);
+		
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.3
+		// Command: USER
+		// Parameters: <user> <mode> <unused> <realname>
+		void cmdUSER(const int& socket, const t_message* message);
 
-	Channel* getChannelByName(const std::string& name);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.4.1
+		// Command: MOTD
+		// Parameters: [ <target> ]
+		void cmdMOTD(const int& socket, const t_message* message);
+		void sendMOTD(const Client& client);
 
-	Client* getClientByNick(const std::string& nick);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.1
+		// Command: JOIN
+		// Parameters: ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
+		void cmdJOIN(const int& socket, const t_message* message);
+		void attempJoin(Client& client, const std::string& channelName, const std::string& channelKey);
+		void addClientToChannel(Client& client, Channel& channel);
 
-	void unregisterClient(Client& client, const std::string& reason);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.3
+		// Command: MODE
+		// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
+		void cmdMODE(const int& socket, const t_message* message);
 
-	// iterates through the list of clients and pings or disconnects ones that have been inactive too long
-	void checkTimeouts(std::vector<pollfd>& fds);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.4
+		// Command: TOPIC
+		// Parameters: <channel> [ <topic> ]
+		void cmdTOPIC(const int& socket, const t_message* message);
 
-	bool isChannelNameValid(const std::string& name) const;
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.8
+		// Command: KICK
+		// Parameters: <channel> *( "," <channel> ) <user> *( "," <user> ) [<comment>]
+		void cmdKICK(const int& socket, const t_message* message);
 
-	void checkRegistration(Client& client);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.7
+		// Command: INVITE
+		// Parameters: Parameters: <nickname> <channel>
+		void cmdINVITE(const int& socket, const t_message* message);
 
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
-	// Command: PASS
-	// Parameters: <password>
-	void cmdPASS(const int& socket, const t_message* message);
-	
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.2
-	// Command: NICK
-	// Parameters: <nickname>
-	void cmdNICK(const int& socket, const t_message* message);
-	
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.3
-	// Command: USER
-	// Parameters: <user> <mode> <unused> <realname>
-	void cmdUSER(const int& socket, const t_message* message);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.3.1
+		// Command: PRIVMSG
+		// Parameters: <msgtarget> <text to be sent>
+		void cmdPRIVMSG(const int& socket, const t_message* message);
 
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.4.1
-	// Command: MOTD
-	// Parameters: [ <target> ]
-	void cmdMOTD(const int& socket, const t_message* message);
-	void sendMOTD(const Client& client);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.3.2
+		// Command: NOTICE
+		// Parameters: <msgtarget> <text>
+		void cmdNOTICE(const int& socket, const t_message* message);
 
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.1
-	// Command: JOIN
-	// Parameters: ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
-	void cmdJOIN(const int& socket, const t_message* message);
-	void attempJoin(Client& client, const std::string& channelName, const std::string& channelKey);
-	void addClientToChannel(Client& client, Channel& channel);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.6
+		// Command: LIST
+		// Parameters: [ <channel> *( "," <channel> ) [ <target> ] ]
+		void cmdLIST(const int& socket, const t_message* message);
 
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.3
-	// Command: MODE
-	// Parameters: <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
-	void cmdMODE(const int& socket, const t_message* message);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.1
+		// Command: WHO
+		// Parameters: [ <mask> [ "o" ] ]
+		void cmdWHO(const int& socket, const t_message* message);
 
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.4
-	// Command: TOPIC
-	// Parameters: <channel> [ <topic> ]
-	void cmdTOPIC(const int& socket, const t_message* message);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.2
+		// Command: WHOIS
+		// Parameters: [ <target> ] <mask> *( "," <mask> )
+		void cmdWHOIS(const int& socket, const t_message* message);
 
- 	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.8
-	// Command: KICK
-	// Parameters: <channel> *( "," <channel> ) <user> *( "," <user> ) [<comment>]
-	void cmdKICK(const int& socket, const t_message* message);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.7.2
+		// Command: PING
+		// Parameters: <server1> [ <server2> ]
+		void cmdPING(const int& socket, const t_message* message);
 
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.7
-	// Command: INVITE
-	// Parameters: Parameters: <nickname> <channel>
-	void cmdINVITE(const int& socket, const t_message* message);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.7.3
+		// Command: PONG
+		// Parameters: <server> [ <server2> ]
+		void cmdPONG(const int& socket, const t_message* message);
 
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.3.1
-	// Command: PRIVMSG
-	// Parameters: <msgtarget> <text to be sent>
-	void cmdPRIVMSG(const int& socket, const t_message* message);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.2
+		// Command: PART
+		// Parameters: <channel> *( "," <channel> ) [ <Part Message> ]
+		void cmdPART(const int& socket, const t_message* message);
 
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.3.2
-	// Command: NOTICE
-	// Parameters: <msgtarget> <text>
-	void cmdNOTICE(const int& socket, const t_message* message);
-
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.6
-	// Command: LIST
-	// Parameters: [ <channel> *( "," <channel> ) [ <target> ] ]
-	void cmdLIST(const int& socket, const t_message* message);
-
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.1
-	// Command: WHO
-	// Parameters: [ <mask> [ "o" ] ]
-	void cmdWHO(const int& socket, const t_message* message);
-
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.2
-	// Command: WHOIS
-	// Parameters: [ <target> ] <mask> *( "," <mask> )
-	void cmdWHOIS(const int& socket, const t_message* message);
-
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.7.2
-	// Command: PING
-	// Parameters: <server1> [ <server2> ]
-	void cmdPING(const int& socket, const t_message* message);
-
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.7.3
-	// Command: PONG
-	// Parameters: <server> [ <server2> ]
-	void cmdPONG(const int& socket, const t_message* message);
-
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.2
-	// Command: PART
-	// Parameters: <channel> *( "," <channel> ) [ <Part Message> ]
-	void cmdPART(const int& socket, const t_message* message);
-
-	// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.7
-	// Command: QUIT
-	// Parameters: [ <Quit Message> ]
-	void cmdQUIT(const int& socket, const t_message* message);
+		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.7
+		// Command: QUIT
+		// Parameters: [ <Quit Message> ]
+		void cmdQUIT(const int& socket, const t_message* message);
 };

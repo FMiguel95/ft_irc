@@ -1,4 +1,3 @@
-# mandatory
 NAME = ircserv
 
 SRC_LIST = main.cpp \
@@ -30,7 +29,7 @@ SRC = $(addprefix $(SRC_DIR), $(SRC_LIST))
 BIN_DIR = mandatory/bin/
 BIN = $(addprefix $(BIN_DIR), $(SRC_LIST:.cpp=.o))
 
-# bonus
+
 NAME_BONUS = ircserv_bonus
 
 SRC_LIST_BONUS = main.cpp \
@@ -62,13 +61,11 @@ SRC_BONUS = $(addprefix $(SRC_DIR_BONUS), $(SRC_LIST_BONUS))
 BIN_DIR_BONUS = bonus/bin/
 BIN_BONUS = $(addprefix $(BIN_DIR_BONUS), $(SRC_LIST_BONUS:.cpp=.o))
 
-# bot
+
 BOT = dealer
 
 SRC_LIST_BOT = main.cpp \
-			Bot.cpp \
-			GameInstance.cpp \
-			Deck.cpp
+			Bot.cpp
 
 SRC_DIR_BOT = bonus/bot/srcs/
 SRC_BOT = $(addprefix $(SRC_DIR_BOT), $(SRC_LIST_BOT))
@@ -77,7 +74,7 @@ BIN_DIR_BOT = bonus/bot/bin/
 BIN_BOT = $(addprefix $(BIN_DIR_BOT), $(SRC_LIST_BOT:.cpp=.o))
 
 CXX = c++
-CXXFLAGS = -g -std=c++98 #-Wall -Werror -Wextra 
+CXXFLAGS = -g -std=c++98 -Wall -Werror -Wextra 
 RM = rm -rf
 
 .PHONY: all bonus clean fclean re

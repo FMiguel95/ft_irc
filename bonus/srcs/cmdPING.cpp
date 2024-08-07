@@ -5,7 +5,7 @@
 // Parameters: <server1> [ <server2> ]
 void Server::cmdPING(const int& socket, const t_message* message)
 {
-	Client& client = clients.at(socket);
+	Client& client = _clients.at(socket);
 
 	// validate if the user is registered
 	if (!client.isRegistered)
@@ -15,10 +15,10 @@ void Server::cmdPING(const int& socket, const t_message* message)
 	if (message->arguments[0].empty())
 	{
 		// reply ERR_NOORIGIN
-		sendMessage(socket, std::string(":") + serverHostname + " " + ERR_NOORIGIN + " " + client.nick + " PING :No origin specified\r\n");
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOORIGIN + " " + client.nick + " PING :No origin specified\r\n");
 		return;
 	}
 
 	// reply PONG
-	sendMessage(socket, std::string(":") + serverHostname + " PONG " + serverHostname + " :" + message->arguments[0] + "\r\n");
+	sendMessage(socket, std::string(":") + _serverHostname + " PONG " + _serverHostname + " :" + message->arguments[0] + "\r\n");
 }
