@@ -71,24 +71,24 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 				if (setMode)
 				{
 					channel->channelMode |= MODE_i;
-					sendMessage(socket, std::string(":") + client.nick + " MODE " + channel->channelName + " +i\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + " MODE " + channel->channelName + " +i\r\n");
 				}
 				else
 				{
 					channel->channelMode &= ~MODE_i;
-					sendMessage(socket, std::string(":") + client.nick + " MODE " + channel->channelName + " -i\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + " MODE " + channel->channelName + " -i\r\n");
 				}
 				break;
 			case 't':
 				if (setMode)
 				{
 					channel->channelMode |= MODE_t;
-					sendMessage(socket, std::string(":") + client.nick + " MODE " + channel->channelName + " +t\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + " MODE " + channel->channelName + " +t\r\n");
 				}
 				else
 				{
 					channel->channelMode &= ~MODE_t;
-					sendMessage(socket, std::string(":") + client.nick + " MODE " + channel->channelName + " -t\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + " MODE " + channel->channelName + " -t\r\n");
 				}
 				break;
 			case 'k':
@@ -97,16 +97,24 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 				{
 					std::string newKey = message->arguments[argIndex];
 					// std::cout << "newKey: " << newKey << std::endl;
+					if (newKey.empty())
+						continue;
+					if (newKey.find_first_of(",") != std::string::npos)
+					{
+						// reply ERR_INVALIDKEY
+						sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_INVALIDKEY + " " + client.nick + " " + channel->channelName + " :Invalid channel key\r\n");
+						continue;
+					}
 					newKey.erase(std::remove(newKey.begin(), newKey.end(), ' '), newKey.end());
 					// std::cout << "newKey post replace: " << newKey << std::endl;
 					channel->channelMode |= MODE_k;
 					channel->channelKey = newKey;
-					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " +k " + newKey + "\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " +k " + newKey + "\r\n");
 				}
 				else if (!setMode)
 				{
 					channel->channelMode &= ~MODE_k;
-					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -k\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -k\r\n");
 				}
 				break;
 			case 'l':
@@ -121,12 +129,12 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 					channel->userLimit = newLimit;
 					std::ostringstream reply;
 					reply << ":" << client.nick << "!" << client.userAtHost << " MODE " << channel->channelName << " +l " << newLimit << "\r\n";
-					sendMessage(socket, reply.str());
+					broadcastMessage(*channel, reply.str());
 				}
 				else if (!setMode)
 				{
 					channel->channelMode &= ~MODE_l;
-					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -l\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -l\r\n");
 				}
 				break;
 			case 'o':
@@ -140,8 +148,10 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 						sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + message->arguments[argIndex] + " " + channel->channelName + " :They aren't on that channel\r\n");
 						continue;
 					}
+					if (clientInChannel->second & MODE_o)
+						continue;
 					clientInChannel->second |= MODE_o;
-					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " +o " + message->arguments[argIndex] + "\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " +o " + message->arguments[argIndex] + "\r\n");
 				}
 				else if (!setMode)
 				{
@@ -152,8 +162,10 @@ void Server::cmdMODE(const int& socket, const t_message* message)
 						sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + message->arguments[argIndex] + " " + channel->channelName + " :They aren't on that channel\r\n");
 						continue;
 					}
+					if (!(clientInChannel->second & MODE_o))
+						continue;
 					clientInChannel->second &= ~MODE_o;
-					sendMessage(socket, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -o " + message->arguments[argIndex] + "\r\n");
+					broadcastMessage(*channel, std::string(":") + client.nick + "!" + client.userAtHost + " MODE " + channel->channelName + " -o " + message->arguments[argIndex] + "\r\n");
 				}
 				break;
 			default:

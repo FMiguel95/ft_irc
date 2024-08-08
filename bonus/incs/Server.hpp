@@ -74,16 +74,17 @@
 #define ERR_BADCHANNELKEY		"475"
 #define ERR_CHANOPRIVSNEEDED	"482"
 #define ERR_UMODEUNKNOWNFLAG	"501"
+#define ERR_INVALIDKEY			"525"
 
 // https://datatracker.ietf.org/doc/html/rfc2812#section-2.3
 // mensagens em irc são compostas por prefixo(opcional), comando, e argumentos (até 15)
 // todos separados por um space character
 typedef struct
 {
-	std::string raw;
-	std::string prefix;
-	std::string command;
-	std::string arguments[15];
+	std::string	raw;
+	std::string	prefix;
+	std::string	command;
+	std::string	arguments[15];
 } t_message;
 
 class Server

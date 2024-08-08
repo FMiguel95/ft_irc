@@ -27,10 +27,10 @@
 
 typedef struct
 {
-	std::string raw;
-	std::string prefix;
-	std::string command;
-	std::string arguments[15];
+	std::string	raw;
+	std::string	prefix;
+	std::string	command;
+	std::string	arguments[15];
 } t_message;
 
 class Bot

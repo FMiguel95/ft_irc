@@ -60,7 +60,15 @@ void Server::cmdNICK(const int& socket, const t_message* message)
 			return;
 		}
 		// OK
-		// ...notificar outros utilizadores da mudança?
+		// create a message for when a user changes their nickname
+		for (std::list<Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+		{
+			std::map<Client *, char>::iterator user = it->getClientInChannel(client.nick);
+			if (user != it->userList.end())
+			{
+				broadcastMessage(*it, std::string(":" + client.nick + " NICK " + message->arguments[0] + "\r\n"));
+			}
+		}
 		return;
 	}
 

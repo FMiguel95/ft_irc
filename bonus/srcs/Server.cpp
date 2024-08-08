@@ -440,6 +440,7 @@ void Server::unregisterClient(Client& client, const std::string& reason)
 		if (userInChannel == i->userList.end())
 			continue;
 		i->userList.erase(userInChannel);
+		std::cout << "user " << client.nick << " removed from channel " << i->channelName << ", number of users remaining:" << i->userList.size() << std::endl;
 		
 		// notificar outros users da saida
 		broadcastMessage(*i, std::string(":") + client.nick + "!" + client.userAtHost + " QUIT :" + reason + "\r\n");
@@ -457,6 +458,7 @@ void Server::unregisterClient(Client& client, const std::string& reason)
 		// if the channel is empty, remove it
 		if (i->userList.empty())
 		{
+			std::cout << "channel " << i->channelName << " is empty, removing\n";
 			_channels.erase(i);
 			break;
 		}

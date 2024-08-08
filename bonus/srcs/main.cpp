@@ -2,16 +2,8 @@
 #include <csignal>
 #include "../incs/Server.hpp"
 
-// TODO
-//
-// test test test
-// file transfer
-// the bot
-
 static void handle_sigint(int signal)
 {
-	std::ofstream new_file("test.txt");
-	new_file << signal << std::endl;
 	if (signal == SIGINT || signal == SIGHUP || signal == SIGTERM)
 		Server::run = false;
 }

@@ -26,6 +26,8 @@ Bot::Bot(const std::string &serverAddress, int serverPort, const std::string &se
 		std::string line;
 		while (std::getline(file, line))
 		{
+			if (line.empty())
+				continue;
 			_filteredWords.push_back(line);
 		}
 		file.close();
