@@ -46,6 +46,7 @@ int main(int ac, char** av)
 	std::signal(SIGINT, handle_sigint);
 	std::signal(SIGHUP, handle_sigint);
 	std::signal(SIGTERM, handle_sigint);
+	
 	Bot bot(address, port, password);
 	return bot.runBot();
 }

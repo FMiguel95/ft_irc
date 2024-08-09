@@ -36,7 +36,7 @@ typedef struct
 class Bot
 {
 	public:
-		static bool run;
+		static bool	run;
 
 		Bot(const std::string &serverAddress, int serverPort, const std::string &serverPassword);
 		Bot(const Bot& src);

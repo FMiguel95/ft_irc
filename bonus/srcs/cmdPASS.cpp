@@ -7,39 +7,36 @@ void Server::cmdPASS(const int& socket, const t_message* message)
 {
 	Client& client = _clients.at(socket);
 	
-	// se ja estiver registado
+	// Validate that the client is not registered
 	if (client.isRegistered)
 	{
-		// reply ERR_ALREADYREGISTRED
 		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_ALREADYREGISTRED + " " + client.nick + " :You may not reregister\r\n");
 		return; 
 	}
-	// se o servidor nao precisar de password OK
+	
+	// If the server doesn't need a password, you can pass wherever password you want
 	if (_serverPassword.empty())
 	{
 		client.passOk = true;
 		return;
 	}
-	// se faltar argumento
+	
+	// Validate that the message has enough parameters
 	if (message->arguments[0].empty())
 	{
-		// reply ERR_NEEDMOREPARAMS
 		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " PASS :Not enough parameters\r\n");
 		return; 
 	}
-	// se a pass esta mal
+
+	// Validate that the password passed matches the server password
 	if (_serverPassword != message->arguments[0])
 	{
-		// reply ERR_PASSWDMISMATCH
 		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_PASSWDMISMATCH + " " + client.nick + " :Password incorrect\r\n");
 		return; 
 	}
-	// se a pass der match
+
+	// If the password is correct, set the passOk flag to true
 	if (_serverPassword == message->arguments[0])
-	{
 		client.passOk = true;
-		return; 
-	}
-	// add password to the class?
 }
 

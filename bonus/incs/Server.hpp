@@ -53,6 +53,7 @@
 #define RPL_WHOISHOST			"378"
 
 #define ERR_NOSUCHNICK			"401"
+#define ERR_NOSUCHSERVER		"402"
 #define ERR_NOSUCHCHANNEL		"403"
 #define ERR_CANNOTSENDTOCHAN	"404"
 #define ERR_NOORIGIN			"409"
@@ -77,8 +78,7 @@
 #define ERR_INVALIDKEY			"525"
 
 // https://datatracker.ietf.org/doc/html/rfc2812#section-2.3
-// mensagens em irc são compostas por prefixo(opcional), comando, e argumentos (até 15)
-// todos separados por um space character
+// messages in irs are composed of: prefix (optional), command, and arguments (up to 15) separated by spaces
 typedef struct
 {
 	std::string	raw;
@@ -112,24 +112,24 @@ class Server
 		std::list<Channel>		_channels;
 		t_message				_message;
 
-		void		getMOTD();
-		void		getHostname();
-		Channel*	getChannelByName(const std::string& name);
-		Client*		getClientByNick(const std::string& nick);
-
 		void		sendMessage(const int& socket, const std::string& message);
 		void		broadcastMessage(Channel& channel, const std::string& message);
 		void		receiveMessage(const int& socket, std::string& stream);
 		t_message*	parseMessage(std::string& stream);
 		void		handleMessage(const int& socket, t_message* message);
+		
+		void		getMOTD();
+		void		getHostname();
+		Channel*	getChannelByName(const std::string& name);
+		Client*		getClientByNick(const std::string& nick);
 
 		bool		isChannelNameValid(const std::string& name) const;
 
 		void		checkRegistration(Client& client);
 
-		void		unregisterClient(Client& client, const std::string& reason);
-
 		void		checkTimeouts(std::vector<pollfd>& fds);
+		
+		void		unregisterClient(Client& client, const std::string& reason);
 		
 		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
 		// Command: PASS
@@ -140,6 +140,7 @@ class Server
 		// Command: NICK
 		// Parameters: <nickname>
 		void cmdNICK(const int& socket, const t_message* message);
+		bool isNickValid(const std::string& nick);
 		
 		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.3
 		// Command: USER

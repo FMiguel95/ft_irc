@@ -45,6 +45,7 @@ int main(int ac, char** av)
 	std::signal(SIGINT, handle_sigint);
 	std::signal(SIGHUP, handle_sigint);
 	std::signal(SIGTERM, handle_sigint);
+	
 	Server server(port, password);
 	return server.runServer();
 }

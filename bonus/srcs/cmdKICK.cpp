@@ -9,47 +9,42 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 
 	Client& client = _clients.at(socket);
 
-	// validar se o user esta registado
+	// Validate that the client is registered
 	if (!client.isRegistered)
 		return;
 
-	// validar se tem 2 parametros ERR_NEEDMOREPARAMS
+	// Validate that the message has enough parameters
 	if (message->arguments[0].empty() || message->arguments[1].empty())
 	{
-		// reply ERR_NEEDMOREPARAMS
 		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NEEDMOREPARAMS + " " + client.nick + " KICK :Not enough parameters\r\n");
 		return;
 	}
 
-	// se o canal não existir ERR_NOSUCHCHANNEL
+	// Validate that the channel exists
 	Channel *channel = getChannelByName(message->arguments[0]);
 	if (channel == NULL)
 	{
-		// reply ERR_NOSUCHCHANNEL
 		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOSUCHCHANNEL + " " + client.nick + " " + message->arguments[0] + " :No such channel\r\n");
 		return;
 	}
 
-	// ERR_NOTONCHANNEL: se o client não estiver no canal
+	// Validate that the client is in the channel
 	std::map<Client*,char>::iterator clientInChannel = channel->getClientInChannel(client.nick);
 	if (clientInChannel == channel->userList.end())
 	{
-		// reply ERR_NOTONCHANNEL
 		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NOTONCHANNEL + " " + client.nick + " " + message->arguments[0] + " :You're not on that channel\r\n");
 		return;
 	}
 	
-	// ERR_CHANOPRIVSNEEDED: se o client não for operador
+	// Validate that the client is a channel operator
 	if (!(clientInChannel->second & MODE_o))
 	{
-		// reply ERR_CHANOPRIVSNEEDED
 		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_CHANOPRIVSNEEDED + " " + client.nick + " " + message->arguments[0] + " :You're not channel operator\r\n");	
 		return;
 	}
 
-	// splitting the users with "," as delimiter
+	// Split the users with "," as delimiter
 	std::vector<std::string> userSplit;
-	
 	size_t start = 0;
 	size_t end;
 	while ((end = message->arguments[1].find(",", start)) != std::string::npos)
@@ -59,46 +54,39 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 	}
 	userSplit.push_back(message->arguments[1].substr(start));
 
-	// ERR_USERNOTINCHANNEL: se o <user> não estiver no canal
+	// Validate that the users being kicked exist in the server and are in the channel
 	Client *target;
 	std::map<Client*,char>::iterator targetInChannel;
 	for (std::vector<std::string>::iterator it = userSplit.begin(); it != userSplit.end(); ++it)
 	{
-		std::cout << *it << std::endl;
 		target = getClientByNick(*it);
 		if (target == NULL)
 		{
-			std::cout << "RPL ERR_USERNOTINCHANNEL" << std::endl;
-			// reply ERR_USERNOTINCHANNEL
 			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
 			return;
 		}
 		targetInChannel = channel->getClientInChannel(target->nick);
 		if (targetInChannel == channel->userList.end())
 		{
-			std::cout << "RPL ERR_USERNOTINCHANNEL" << std::endl;
-			// reply ERR_USERNOTINCHANNEL
 			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_USERNOTINCHANNEL + " " + client.nick + " " + *it + " " + message->arguments[0] + " :They aren't on that channel\r\n");
 			return;
 		}
 	}
 
-	// if successfull:
-
-	// define the comment
+	// Check if there is a comment for the KICK, if not, use the client's nick
 	std::string comment;
 	if (message->arguments[2].empty())
 		comment = client.nick;
 	else
 		comment = message->arguments[2]; 
 
-	// broadcast KICK message to the channel
+	// Notify all users in the channel that the user was kicked
 	broadcastMessage(*channel, std::string(":") + client.nick + "!" + client.userAtHost + " KICK " + channel->channelName + " " + message->arguments[1] + " :" + comment + "\r\n");
 	
-	// remove the user from the channel
+	// Remove the user from the channel
 	channel->userList.erase(targetInChannel);
 
-	// if the user had an invite for that channel, remove it
+	// If the user had an invite for that channel, remove it
 	for (std::list<Client*>::iterator i = channel->invitedUsers.begin(); i != channel->invitedUsers.end(); ++i)
 	{
 		if ((*i)->nick == client.nick)
@@ -108,7 +96,7 @@ void Server::cmdKICK(const int& socket, const t_message* message)
 		}
 	}
 	
-	// if the channel is empty, remove it
+	// If the channel has now 0 users, remove it
 	if (channel->userList.empty())
 	{
 		for (std::list<Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)

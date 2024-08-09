@@ -1,42 +1,41 @@
 #include "../incs/Client.hpp"
 
+// Constructors, Destructor and Assignment operator -----------------------------------------------
+
 Client::Client() :
-	socket(0),
-	isRegistered(false),
-	passOk(false),
-	nickOk(false),
-	userOk(false),
-	pendingPong(false),
-	_lastActivityTime(std::time(NULL)),
-	_lastPingTime(std::time(NULL))
-{}
+		socket(0),
+		isRegistered(false),
+		passOk(false),
+		nickOk(false),
+		userOk(false),
+		pendingPong(false),
+		_lastActivityTime(std::time(NULL)),
+		_lastPingTime(std::time(NULL)) {}
 
 Client::Client(const int& socket) :
-	socket(socket),
-	isRegistered(false),
-	passOk(false),
-	nickOk(false),
-	userOk(false),
-	pendingPong(false),
-	_lastActivityTime(std::time(NULL)),
-	_lastPingTime(std::time(NULL))
-{}
+		socket(socket),
+		isRegistered(false),
+		passOk(false),
+		nickOk(false),
+		userOk(false),
+		pendingPong(false),
+		_lastActivityTime(std::time(NULL)),
+		_lastPingTime(std::time(NULL)) {}
 
 Client::Client(const Client& src) :
-	socket(src.socket),
-	nick(src.nick),
-	user(src.user),
-	hostname(src.hostname),
-	userAtHost(src.userAtHost),
-	realname(src.realname),
-	isRegistered(src.isRegistered),
-	passOk(src.passOk),
-	nickOk(src.nickOk),
-	userOk(src.userOk),
-	pendingPong(src.pendingPong),
-	_lastActivityTime(src._lastActivityTime),
-	_lastPingTime(src._lastPingTime)
-{}
+		socket(src.socket),
+		nick(src.nick),
+		user(src.user),
+		hostname(src.hostname),
+		userAtHost(src.userAtHost),
+		realname(src.realname),
+		isRegistered(src.isRegistered),
+		passOk(src.passOk),
+		nickOk(src.nickOk),
+		userOk(src.userOk),
+		pendingPong(src.pendingPong),
+		_lastActivityTime(src._lastActivityTime),
+		_lastPingTime(src._lastPingTime) {}
 
 Client::~Client() {}
 
@@ -60,6 +59,8 @@ Client& Client::operator =(const Client& src)
 	}
 	return *this;
 }
+
+// Member functions -------------------------------------------------------------------------------
 
 double Client::getTimeSinceLastActivity() const
 {

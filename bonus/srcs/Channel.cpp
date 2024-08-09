@@ -1,29 +1,28 @@
 #include "../incs/Channel.hpp"
 
+// Constructors, Destructor and Assignment operator -----------------------------------------------
+
 Channel::Channel() :
-channelName(""),
-channelKey(""),
-topic(""),
-userLimit(9999),
-channelMode(0)
-{}
+		channelName(""),
+		channelKey(""),
+		topic(""),
+		userLimit(9999),
+		channelMode(0) {}
 
 Channel::Channel(const std::string& name, const std::string& key) :
-channelName(name),
-channelKey(key),
-topic(""),
-userLimit(9999),
-channelMode(0)
-{}
+		channelName(name),
+		channelKey(key),
+		topic(""),
+		userLimit(9999),
+		channelMode(0) {}
 
 Channel::Channel(const Channel& src) :
-channelName(src.channelName),
-channelKey(src.channelKey),
-topic(src.topic),
-userLimit(src.userLimit),
-channelMode(src.channelMode),
-userList(src.userList)
-{}
+		channelName(src.channelName),
+		channelKey(src.channelKey),
+		topic(src.topic),
+		userLimit(src.userLimit),
+		channelMode(src.channelMode),
+		userList(src.userList) {}
 
 Channel::~Channel() {}
 
@@ -40,6 +39,8 @@ Channel& Channel::operator =(const Channel& src)
 	}
 	return *this;
 }
+
+// Member functions -------------------------------------------------------------------------------
 
 std::map<Client*,char>::iterator Channel::getClientInChannel(const std::string& nick)
 {

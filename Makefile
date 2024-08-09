@@ -117,3 +117,5 @@ fclean: clean
 	$(RM) $(NAME) $(NAME_BONUS) $(BOT)
 
 re: fclean all
+
+re_bonus: fclean bonus

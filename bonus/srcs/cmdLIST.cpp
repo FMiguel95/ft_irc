@@ -7,28 +7,25 @@ void Server::cmdLIST(const int& socket, const t_message* message)
 {
 	Client& client = _clients.at(socket);
 
-	// validar se o user esta registado
+	// Validate that the client is registered
 	if (!client.isRegistered)
 		return;
 	
-	if (message->arguments[0].empty()) // list every channel if no parameters
+	// If there are no parameters, list all channels
+	if (message->arguments[0].empty())
 	{
 		for (std::list<Channel>::iterator i = _channels.begin(); i != _channels.end(); ++i)
 		{
-			// reply RPL_LIST
 			std::ostringstream oss;
-			// if (i->topic.empty())
-			// 	oss << ":") + serverHostname + " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << "\r\n";
-			// else
-				oss << ":" << _serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
+			oss << ":" << _serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
 			sendMessage(socket, oss.str());
 		}
 	}
-	else // else parse the parameter and only list those
+	// If there are parameters, list the channels specified
+	else
 	{
+		// Split the channels with "," as delimiter
 		std::vector<std::string> channelsSplit;
-
-		// splitting the channels with "," as delimiter
 		size_t start = 0;
 		size_t end;
 		while ((end = message->arguments[0].find(",", start)) != std::string::npos)
@@ -42,13 +39,11 @@ void Server::cmdLIST(const int& socket, const t_message* message)
 		{
 			if (std::find(channelsSplit.begin(), channelsSplit.end(), i->channelName) != channelsSplit.end())
 			{
-				// reply RPL_LIST
 				std::ostringstream oss;
 				oss << ":" << _serverHostname << " " << RPL_LIST << " " << client.nick << " " << i->channelName << " " << i->userList.size() << " :" << i->topic << "\r\n";
 				sendMessage(socket, oss.str());
 			}
 		}
 	}
-	// reply RPL_LISTEND
 	sendMessage(socket, std::string(":") + _serverHostname + " " + RPL_LISTEND + " " + client.nick + " :End of /LIST\r\n");
 }

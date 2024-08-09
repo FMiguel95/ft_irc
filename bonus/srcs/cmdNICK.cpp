@@ -1,6 +1,58 @@
 #include "../incs/Server.hpp"
 
-static bool isNickValid(const std::string& nick)
+// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.2
+// Command: NICK
+// Parameters: <nickname>
+void Server::cmdNICK(const int& socket, const t_message* message)
+{
+	Client& client = _clients.at(socket);
+
+	// Validate that the right amount of arguments were sent
+	if (message->arguments[0].empty())
+	{
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NONICKNAMEGIVEN + " " + client.nick + " :No nickname given\r\n");
+		return;
+	}
+
+	// Validate that the nickname is valid
+	if (isNickValid(message->arguments[0]) == false)
+	{
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_ERRONEUSNICKNAME + " " + client.nick + " " + message->arguments[0] + " :Erroneous nickname\r\n");
+		return;
+	}
+
+	// Validate that the nickname is not in use
+	Client *clientInUse = getClientByNick(message->arguments[0]);
+	if (clientInUse)
+	{
+		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NICKNAMEINUSE + " " + client.nick + " " + message->arguments[0] + " :Nickname is already in use\r\n");
+		return;
+	}
+
+	// If the the user is registered
+	if (client.isRegistered)
+	{
+		// Broadcast the new nickname to all channels the user is in
+		for (std::list<Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+		{
+			std::map<Client *, char>::iterator user = it->getClientInChannel(client.nick);
+			if (user != it->userList.end())
+				broadcastMessage(*it, std::string(":" + client.nick + " NICK " + message->arguments[0] + "\r\n"));
+		}
+		client.nick = message->arguments[0];
+		return;
+	}
+	// If the client is getting registered
+	else
+	{
+		// Set the new nickname
+		client.nick = message->arguments[0];
+		client.nickOk = true;
+		checkRegistration(client);
+	}
+}
+
+bool Server::isNickValid(const std::string& nick)
 {
 	if (nick.length() > 63)
 		return false;
@@ -13,101 +65,4 @@ static bool isNickValid(const std::string& nick)
 			return (false);
 	}
 	return (true);
-}
-
-static bool isNickinUse(const std::string& nick, std::map<int,Client>& clients)
-{
-	for (std::map<int,Client>::iterator it = clients.begin(); it != clients.end(); ++it)
-	{
-		if (it->second.isRegistered && it->second.nickOk && it->second.nick == nick)
-			return (true);
-	}
-	return (false);
-}
-
-// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.2
-// Command: NICK
-// Parameters: <nickname>
-void Server::cmdNICK(const int& socket, const t_message* message)
-{
-	Client& client = _clients.at(socket);
-	// este comando tem dois usos
-	// - escolher o nick na altura do registo -> DONE
-	// - mudar o nick depois de ja estar registado -> DONE
-
-	// se ja estiver registado
-	if (client.isRegistered)
-	{
-		// validar que o comando tem argumento
-		if (message->arguments[0].empty())
-		{
-			// reply ERR_NONICKNAMEGIVEN
-			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NONICKNAMEGIVEN + " " + client.nick + " :No nickname given\r\n");
-			return;
-		}
-		// validar caracteres do nick
-		if (isNickValid(message->arguments[0]) == false)
-		{
-			// reply ERR_ERRONEUSNICKNAME
-			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_ERRONEUSNICKNAME + " " + client.nick + " " + message->arguments[0] + " :Erroneous nickname\r\n");
-			return;
-		}
-		// validar que o nick nao esta a ser utilizado por outro user
-		if (isNickinUse(message->arguments[0], _clients) == true)
-		{
-			// reply ERR_NICKNAMEINUSE
-			sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NICKNAMEINUSE + " " + client.nick + " " + message->arguments[0] + " :Nickname is already in use\r\n");
-			return;
-		}
-		// OK
-		// create a message for when a user changes their nickname
-		for (std::list<Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
-		{
-			std::map<Client *, char>::iterator user = it->getClientInChannel(client.nick);
-			if (user != it->userList.end())
-			{
-				broadcastMessage(*it, std::string(":" + client.nick + " NICK " + message->arguments[0] + "\r\n"));
-			}
-		}
-		return;
-	}
-
-	// WHEN REGISTERING
-
-	// validar que password é necessaria e enviou a pass correta
-	//std::cout << "serverPass:" << serverPassword << " client.passOk" << client.passOk << std::endl;
-	if (!_serverPassword.empty() && client.passOk == false)
-	{
-		std::cout << "ERR_PASSWDMISMATCH\n";
-		// reply ERR_PASSWDMISMATCH ??? see what to do 
-		//sendMessage(socket, std::string(":") + serverHostname + " " + ERR_PASSWDMISMATCH + " " + client.nick + " :Password incorrect\r\n");
-		return;
-	}
-	// validar que o comando tem argumento -> the user can't be bigger than 9? copilot recommended this
-	if (message->arguments[0].empty())
-	{
-		// reply ERR_NONICKNAMEGIVEN
-		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NONICKNAMEGIVEN + " :No nickname given\r\n");
-		return;
-	}
-	// validar caracteres do nick
-	if (isNickValid(message->arguments[0]) == false)
-	{
-		// reply ERR_ERRONEUSNICKNAME
-		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_ERRONEUSNICKNAME + " " + message->arguments[0] + " " + message->arguments[0] + " :Erroneous nickname\r\n");
-		return;
-	}
-	// validar que o nick nao esta a ser utilizado por outro user
-	if (isNickinUse(message->arguments[0], _clients) == true)
-	{
-		// reply ERR_NICKNAMEINUSE
-		sendMessage(socket, std::string(":") + _serverHostname + " " + ERR_NICKNAMEINUSE + " " + message->arguments[0] + " " + message->arguments[0] + " :Nickname is already in use\r\n");
-		return;
-	}
-	// OK
-	// add nick to the client
-	client.nick = message->arguments[0];
-	client.nickOk = true;
-
-	checkRegistration(client);
 }
