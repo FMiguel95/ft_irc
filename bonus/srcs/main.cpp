@@ -23,6 +23,8 @@ static bool str2uint16(char* str, int* out)
 			return false;
 		i++;
 	}
+	if (*out == 0)
+		return false;
 	return true;
 }
 

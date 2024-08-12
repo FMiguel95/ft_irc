@@ -78,7 +78,7 @@ int Bot::runBot()
 	// DEFINE SERVER ADDRESS ---------------------------------------------------
 	
 	sockaddr_in server_address;
-	memset(&server_address, 0, sizeof(server_address));
+	std::memset(&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(_serverPort);
 
@@ -90,7 +90,7 @@ int Bot::runBot()
 		close(_clientSocket);
 		return -1;
 	}
-	memcpy(&server_address.sin_addr, host->h_addr, host->h_length);
+	std::memcpy(&server_address.sin_addr, host->h_addr, host->h_length);
 
 	// CONNECT TO THE SERVER ---------------------------------------------------
 

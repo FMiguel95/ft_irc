@@ -135,7 +135,7 @@ int Server::runServer()
 			if (fds[i].revents & POLLIN)
 			{
 				char buffer[1024];
-				int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+				int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
 				if (bytesRead <= 0)
 				{
 					std::cout << "\001\e[0;31m" << "Client " << fds[i].fd << " disconnected\n" << "\e[0m\002";
@@ -148,6 +148,7 @@ int Server::runServer()
 					i--;
 					continue;
 				}
+				buffer[bytesRead] = '\0';
 				std::string clientMessage = std::string(buffer, 0, bytesRead);
 				receiveMessage(fds[i].fd, clientMessage);
 			}
@@ -453,7 +454,7 @@ Client* Server::getClientByNick(const std::string& nick)
 	// Returns a client if there is one with the given nick
 	for (std::map<int, Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
 	{
-		if (i->second.nick == nick && i->second.isRegistered)
+		if (i->second.nick == nick && i->second.nickOk)
 			return (Client*)&i->second;
 	}
 	return NULL;

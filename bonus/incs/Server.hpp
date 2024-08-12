@@ -21,7 +21,7 @@
 
 #define SERVER_NAME				"ft_irc"
 
-#define TIMEOUT_TIME			10
+#define TIMEOUT_TIME			1000
 #define PING_TIMEOUT_TIME		10
 
 #define RPL_WELCOME				"001"
