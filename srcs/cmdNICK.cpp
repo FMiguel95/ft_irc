@@ -33,6 +33,7 @@ void Server::cmdNICK(const int& socket, const t_message* message)
 	if (client.isRegistered)
 	{
 		// Broadcast the new nickname to all channels the user is in
+		sendMessage(socket, std::string(":" + client.nick + " NICK " + message->arguments[0] + "\r\n"));
 		for (std::list<Channel>::iterator it = _channels.begin(); it != _channels.end(); ++it)
 		{
 			std::map<Client *, char>::iterator user = it->getClientInChannel(client.nick);

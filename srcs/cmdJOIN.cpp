@@ -18,18 +18,23 @@ void Server::cmdJOIN(const int& socket, const t_message* message)
 		return;
 	}
 
+	// converting channel names to lowercase
+	std::string channels = message->arguments[0];
+	for (int i = 0; channels[i]; i++)
+		channels[i] = std::tolower(channels[i]);
+
 	// Splitting the channels with "," as delimiter
 	std::vector<std::string> channelSplit;
 	std::vector<std::string> keys;
 	size_t start = 0;
 	size_t end;
 	
-	while ((end = message->arguments[0].find(",", start)) != std::string::npos)
+	while ((end = channels.find(",", start)) != std::string::npos)
 	{
-		channelSplit.push_back(message->arguments[0].substr(start, end - start));
+		channelSplit.push_back(channels.substr(start, end - start));
 		start = end + 1;
 	}
-	channelSplit.push_back(message->arguments[0].substr(start));
+	channelSplit.push_back(channels.substr(start));
 
 	// If there are keys, split them with "," as delimiter
 	if (!message->arguments[1].empty())

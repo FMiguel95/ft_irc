@@ -21,7 +21,7 @@ Bot::Bot(const std::string &serverAddress, int serverPort, const std::string &se
 	std::ifstream file("filtered_words.txt");
 	if (!file)
 	{
-		std::cerr << "Error opening file: " << strerror(errno) << std::endl;
+		std::cerr << "Error opening file" << std::endl;
 	}
 	else
 	{
@@ -65,7 +65,7 @@ int Bot::runBot()
 	_clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_clientSocket < 0)
 	{
-		std::cerr << "Error creating socket: " << strerror(errno) << std::endl;
+		std::cerr << "Error creating socket" << std::endl;
 		return -1;
 	}
 
@@ -96,7 +96,7 @@ int Bot::runBot()
 
 	if (connect(_clientSocket, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
 	{
-		std::cerr << "Connection failed: " << strerror(errno) << std::endl;
+		std::cerr << "Connection failed" << std::endl;
 		close(_clientSocket);
 		return -1;
 	}
@@ -113,6 +113,7 @@ int Bot::runBot()
 	run = true;
 	while (run)
 	{
+		std::cout << "test\n";
 		char buffer[1024];
 		std::memset(buffer, '\0', 1024);
 		int bytes_received = recv(_clientSocket, buffer, sizeof(buffer), 0);
@@ -143,7 +144,7 @@ int Bot::runBot()
 		{
 			if (errno == EAGAIN || errno == EINTR)
 				continue;
-			std::cerr << RED << "Error receiving data: " << RESET << strerror(errno) << std::endl;
+			std::cerr << RED << "Error receiving data" << RESET << std::endl;
 			break;
 		}
 	}
@@ -156,7 +157,7 @@ int Bot::sendMessage(const std::string& message)
 	// Send the message to the server
 	if (send(_clientSocket, message.c_str(), message.length(), 0) < 0)
 	{
-		std::cerr << RED << "Error sending message: " << RESET << strerror(errno) << std::endl;
+		std::cerr << RED << "Error sending message" << RESET << std::endl;
 		close(_clientSocket);
 		return -1;
 	}

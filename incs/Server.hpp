@@ -9,7 +9,6 @@
 #include <cctype>
 #include <ctime>
 #include <sstream>
-#include <cerrno>
 #include <cstring>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -21,8 +20,8 @@
 
 #define SERVER_NAME				"ft_irc"
 
-#define TIMEOUT_TIME			1000
-#define PING_TIMEOUT_TIME		10
+#define TIMEOUT_TIME			60
+#define PING_TIMEOUT_TIME		30
 
 #define RPL_WELCOME				"001"
 #define RPL_YOURHOST			"002"
@@ -130,6 +129,8 @@ class Server
 		void		checkTimeouts(std::vector<pollfd>& fds);
 		
 		void		unregisterClient(Client& client, const std::string& reason);
+
+		int			error_exit(const char *message);
 		
 		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
 		// Command: PASS
@@ -177,7 +178,7 @@ class Server
 
 		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.7
 		// Command: INVITE
-		// Parameters: Parameters: <nickname> <channel>
+		// Parameters: <nickname> <channel>
 		void cmdINVITE(const int& socket, const t_message* message);
 
 		// https://datatracker.ietf.org/doc/html/rfc2812#section-3.3.1
