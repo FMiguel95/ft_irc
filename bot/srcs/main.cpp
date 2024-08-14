@@ -30,7 +30,7 @@ int main(int ac, char** av)
 {
 	if (ac != 4)
 	{
-		std::cerr << "Usage: ./dealer <address> <port> <password>" << std::endl;
+		std::cerr << "Usage: ./the_bot <address> <port> <password>" << std::endl;
 		return 1;
 	}
 

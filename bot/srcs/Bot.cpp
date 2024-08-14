@@ -113,7 +113,6 @@ int Bot::runBot()
 	run = true;
 	while (run)
 	{
-		std::cout << "test\n";
 		char buffer[1024];
 		std::memset(buffer, '\0', 1024);
 		int bytes_received = recv(_clientSocket, buffer, sizeof(buffer), 0);
